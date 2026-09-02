@@ -2,9 +2,11 @@
 
 HijelHID_BLEKeyboard keyboard;
 
-const int PLAY_PAUSE_PIN = 5;
-const int VOL_DOWN_PIN = 18;
-const int VOL_UP_PIN = 19;
+const int PLAY_PAUSE_PIN = 18;
+const int VOL_DOWN_PIN = 19;
+const int VOL_UP_PIN = 5;
+const int SCREEN_SDA_PIN = 23;
+const int SCREEN_SCK_PIN = 24;
 
 void setup() {
     Serial.begin(115200);
