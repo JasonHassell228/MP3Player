@@ -6,15 +6,27 @@ const int PLAY_PAUSE_PIN = 18;
 const int VOL_DOWN_PIN = 19;
 const int VOL_UP_PIN = 5;
 const int SCREEN_SDA_PIN = 23;
-const int SCREEN_SCK_PIN = 24;
+const int SCREEN_SCK_PIN = 22;
+
+int ALL_PINS[] = { PLAY_PAUSE_PIN, VOL_DOWN_PIN, VOL_UP_PIN, SCREEN_SDA_PIN, SCREEN_SCK_PIN };
+
+void SetPullupPins(int pins[])
+{
+    int numPins = sizeof(pins) / sizeof(pins[0]);
+    for (int i = 0; i < numPins; i++)
+    {
+        pinMode(pins[i], INPUT_PULLUP);
+    }
+}
 
 void setup() {
     Serial.begin(115200);
     Serial.println("HijelHID BLE Keyboard — Basic Example");
 
-    pinMode(PLAY_PAUSE_PIN, INPUT_PULLUP);
-    pinMode(VOL_DOWN_PIN, INPUT_PULLUP);
-    pinMode(VOL_UP_PIN, INPUT_PULLUP);
+    SetPullupPins(ALL_PINS);
+    // pinMode(PLAY_PAUSE_PIN, INPUT_PULLUP);
+    // pinMode(VOL_DOWN_PIN, INPUT_PULLUP);
+    // pinMode(VOL_UP_PIN, INPUT_PULLUP);
 
     keyboard.setLogLevel(HIDLogLevel::Normal);
 
