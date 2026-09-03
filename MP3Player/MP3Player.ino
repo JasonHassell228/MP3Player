@@ -19,7 +19,7 @@ const int ALL_BTN_PINS[numBtnPins] = {
 HijelHID_BLEKeyboard keyboard;
 SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
 
-void SetPullupPins(const int pins[])
+void setPullupPins(const int pins[])
 {
     for (int i = 0; i < numBtnPins; i++)
     {
@@ -27,25 +27,33 @@ void SetPullupPins(const int pins[])
     }
 }
 
+void initializeDisplay()
+{
+    // Setup
+    display.init();
+    display.flipScreenVertically();
+    display.setFont(ArialMT_Plain_16);
+    display.clear();
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+
+    // Draw welcome text
+    display.drawString(0, 0, "No song?");
+    display.setTextAlignment(TEXT_ALIGN_CENTER);
+    display.drawString(64, 15, ":(");
+    // write the buffer to the display
+    display.display();
+}
+
 void setup() {
     Serial.begin(115200);
-    SetPullupPins(ALL_BTN_PINS);
+    setPullupPins(ALL_BTN_PINS);
 
     keyboard.setLogLevel(HIDLogLevel::Normal);
     keyboard.begin();
 
     // TODO Test why this doesn't work \/\/\/\/
     // ----- DISPLAY TEST -----
-        display.init();
-        display.flipScreenVertically();
-        display.setFont(ArialMT_Plain_24);
-        // loop
-        display.clear();
-        display.setTextAlignment(TEXT_ALIGN_LEFT);
-        display.drawString(0, 0, "Left aligned (0,0) blah blah");
-        // write the buffer to the display
-        display.display();
-        // todo loop
+    initializeDisplay();
 
     Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
 }
@@ -59,32 +67,23 @@ void loop() {
     //     }
     //     return;
     // }
-    SetPullupPins(ALL_BTN_PINS);
-    if (digitalRead(VOL_UP_PIN) == LOW) {
-        keyboard.tap(MEDIA_VOLUME_UP, 25, 50);
-        keyboard.releaseAll();
-        delay(50); // debounce
-    }
-
-    if (digitalRead(VOL_DOWN_PIN) == LOW) {
-        keyboard.tap(MEDIA_VOLUME_DOWN, 25, 50);
-        keyboard.releaseAll();
-        delay(50); // debounce
-    }
-
-    if (digitalRead(PLAY_PAUSE_PIN) == LOW) {
-        keyboard.tap(MEDIA_PLAY_PAUSE, 25, 50);
-        keyboard.releaseAll();
-    }
-    // printPin(VOL_DOWN_PIN);
-    // printPin(VOL_UP_PIN);
+    checkBtnPresses();
     delay(50);
 }
 
-// void printPin(int pin)
-// {
-//     Serial.print("pin ");
-//     Serial.print(pin);
-//     Serial.print(": ");
-//     Serial.println(digitalRead(pin));
-// }
+// Checks all physical button presses and runs the corresponding action
+void checkBtnPresses()
+{
+    pressBluetoothBtn(VOL_UP_PIN, MEDIA_VOLUME_UP);
+    pressBluetoothBtn(VOL_DOWN_PIN, MEDIA_VOLUME_DOWN);
+    pressBluetoothBtn(PLAY_PAUSE_PIN, MEDIA_PLAY_PAUSE);
+}
+
+// Check if physical btn pressed, if yes press corresponding bluetooth btn
+void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn)
+{
+    if (digitalRead(pin) == LOW) {
+        keyboard.tap(bluetoothBtn, 25, 50);
+        keyboard.releaseAll();
+    }
+}
