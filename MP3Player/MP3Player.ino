@@ -2,52 +2,74 @@
 #include <Wire.h>
 #include "SSD1306Wire.h"
 
-const int PLAY_PAUSE_PIN = 18;
-const int VOL_DOWN_PIN = 19;
-const int VOL_UP_PIN = 5;
-const int SCREEN_SDA_PIN = 23;
-const int SCREEN_SCK_PIN = 22;
-
 HijelHID_BLEKeyboard keyboard;
-SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
 
-int ALL_PINS[] = {
-    PLAY_PAUSE_PIN,
-    VOL_DOWN_PIN,
-    VOL_UP_PIN,
-    SCREEN_SDA_PIN,
-    SCREEN_SCK_PIN
-    };
-
-void SetPullupPins(int pins[])
-{
-    int numPins = sizeof(pins) / sizeof(pins[0]);
-    for (int i = 0; i < numPins; i++)
-    {
-        pinMode(pins[i], INPUT_PULLUP);
-    }
-}
+const int PLAY_PAUSE_PIN = 5;
+const int VOL_DOWN_PIN = 18;
+const int VOL_UP_PIN = 19;
 
 void setup() {
     Serial.begin(115200);
     Serial.println("HijelHID BLE Keyboard — Basic Example");
 
-    SetPullupPins(ALL_PINS);
-    keyboard.setLogLevel(HIDLogLevel::Normal);
-    keyboard.begin();
+    pinMode(PLAY_PAUSE_PIN, INPUT_PULLUP);
+    pinMode(VOL_DOWN_PIN, INPUT_PULLUP);
+    pinMode(VOL_UP_PIN, INPUT_PULLUP);
 
-    display.init();
-    display.setFont(ArialMT_Plain_10);
-    // loop
-    display.clear();
-    display.setTextAlignment(TEXT_ALIGN_RIGHT);
-    display.drawString(0, 0, "test");
-    // write the buffer to the display
-    display.display();
-    // todo loop
+    keyboard.setLogLevel(HIDLogLevel::Normal);
+
+    keyboard.begin();
 
     Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
 }
+
+// TODO Test why this doesn't work \/\/\/\/
+
+// const int PLAY_PAUSE_PIN = 18;
+// const int VOL_DOWN_PIN = 19;
+// const int VOL_UP_PIN = 5;
+// const int SCREEN_SDA_PIN = 23;
+// const int SCREEN_SCK_PIN = 22;
+
+// SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
+
+// int ALL_PINS[] = {
+//     PLAY_PAUSE_PIN,
+//     VOL_DOWN_PIN,
+//     VOL_UP_PIN,
+//     SCREEN_SDA_PIN,
+//     SCREEN_SCK_PIN
+//     };
+
+// void SetPullupPins(int pins[])
+// {
+//     int numPins = sizeof(pins) / sizeof(pins[0]);
+//     for (int i = 0; i < numPins; i++)
+//     {
+//         pinMode(pins[i], INPUT_PULLUP);
+//     }
+// }
+
+// void setup() {
+//     Serial.begin(115200);
+//     Serial.println("HijelHID BLE Keyboard — Basic Example");
+
+//     SetPullupPins(ALL_PINS);
+//     keyboard.setLogLevel(HIDLogLevel::Normal);
+//     keyboard.begin();
+
+//     display.init();
+//     display.setFont(ArialMT_Plain_10);
+//     // loop
+//     display.clear();
+//     display.setTextAlignment(TEXT_ALIGN_RIGHT);
+//     display.drawString(0, 0, "test");
+//     // write the buffer to the display
+//     display.display();
+//     // todo loop
+
+//     Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
+// }
 
 void loop() {
     if (!keyboard.isPaired()) {
