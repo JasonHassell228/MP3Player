@@ -2,6 +2,8 @@
 #include <WiFiClientSecure.h>
 #include <WiFi.h>
 #include <Wire.h>
+#include "mbedtls/md.h"
+#include "HelperFunctions.h"
 #include "SSD1306Wire.h"
 
 // ----- wip wifi test -----
@@ -35,14 +37,6 @@ const int ALL_BTN_PINS[numBtnPins] = {
 
 HijelHID_BLEKeyboard keyboard;
 SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
-
-void setPullupPins(const int pins[])
-{
-    for (int i = 0; i < numBtnPins; i++)
-    {
-        pinMode(pins[i], INPUT_PULLUP);
-    }
-}
 
 void initializeDisplay()
 {
@@ -120,75 +114,38 @@ void setup() {
     // ----- wip wifi test -----
 
     // ----- wip spotify test -----
+    /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
+    [x] generate code verifier
+    [ ] generate code challenge (SHA 256 hash) (+ base64 encode?)
+    [ ] GET request to /authorize endpoint
+    [ ] exchange received auth code for access token
+    */
     Serial.println();
     Serial.println("access token: " + getAccessToken());
-    Serial.println("code verifier: " + generateCodeVerifier(64));
+    String codeVerifier = generateCodeVerifier(64);
+
+    // ----- wip base64 encode test -----
+    std::vector<uint8_t> data(codeVerifier.begin(), codeVerifier.end());
+	auto encoded = encode_base64(data);
+	auto decoded = decode_base64(encoded);
+
+	Serial.printf("Original (%d bytes): ", data.size());
+	printBlockAsUtf8(data);
+	Serial.println();
+
+	Serial.printf("Encoded (%d bytes): ", encoded.length());
+	Serial.print(encoded.c_str());
+	Serial.println();
+
+	Serial.printf("Decoded (%d bytes): ", decoded.size());
+	printBlockAsUtf8(decoded);
+    // ----- wip base64 encode test -----
+
+    String codeVerifiedHashed = generateSHA256(codeVerifier)
+    Serial.println("code verifier: " + codeVerifier);
+    Serial.println("code verifier SHA256: " + codeVerifiedHashed);
     // ----- wip spotify test -----
 }
-
-// ----- wip spotify test -----
-String generateCodeVerifier(int length) {
-    String text = "";
-    String possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-    for (int i = 0; i < length; i++) {
-        text += possible[random(0, possible.length())];
-    }
-    return text;
-}
-
-/* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
-[x] generate code verifier
-[ ] generate code challenge (SHA 256 hash) (+ base64 encode?)
-[ ] GET request to /authorize endpoint
-[ ] exchange received auth code for access token
-*/
-String codeVerifier  = generateCodeVerifier(64);
-
-
-String getAccessToken() {
-    client.setTimeout(8000); // Reduced timeout
-    
-    if (!client.connect(token_host, httpsPort)) {
-        return "";
-    }
-
-    String body = String("grant_type=client_credentials") +
-                  "&client_id=" + String(client_id) +
-                  "&client_secret=" + String(client_secret);
-
-    client.println("POST /api/token HTTP/1.1");
-    client.println("Host: accounts.spotify.com");
-    client.println("Content-Type: application/x-www-form-urlencoded");
-    client.print("Content-Length: ");
-    client.println(body.length());
-    client.println("Connection: close");
-    client.println();
-    client.print(body);
-
-    unsigned long timeout = millis() + 8000;
-    while (client.connected() && millis() < timeout) {
-        String line = client.readStringUntil('\n');
-        if (line == "\r") break;
-    }
-
-    if (millis() >= timeout) {
-        client.stop();
-        return "";
-    }
-
-    String response = client.readString();
-    client.stop();
-    
-    int startIndex = response.indexOf("\"access_token\":\"") + 16;
-    int endIndex = response.indexOf("\"", startIndex);
-    if (startIndex > 15 && endIndex > startIndex) {
-        return response.substring(startIndex, endIndex);
-    }
-
-    return "";
-}
-// ----- wip spotify test -----
 
 void loop() {
     // if (!keyboard.isPaired()) {
@@ -201,21 +158,4 @@ void loop() {
     // }
     checkBtnPresses();
     delay(50);
-}
-
-// Checks all physical button presses and runs the corresponding action
-void checkBtnPresses()
-{
-    pressBluetoothBtn(VOL_UP_PIN, MEDIA_VOLUME_UP);
-    pressBluetoothBtn(VOL_DOWN_PIN, MEDIA_VOLUME_DOWN);
-    pressBluetoothBtn(PLAY_PAUSE_PIN, MEDIA_PLAY_PAUSE);
-}
-
-// Check if physical btn pressed, if yes press corresponding bluetooth btn
-void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn)
-{
-    if (digitalRead(pin) == LOW) {
-        keyboard.tap(bluetoothBtn, 25, 50);
-        keyboard.releaseAll();
-    }
 }
