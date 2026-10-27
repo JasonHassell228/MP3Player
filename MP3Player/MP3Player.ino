@@ -1,27 +1,9 @@
-#include <HijelHID_BLEKeyboard.h>
-#include <WiFiClientSecure.h>
+// Other libs imported in HelperFunctions.h
 #include <WiFi.h>
 #include <Wire.h>
-#include "mbedtls/md.h"
 #include "HelperFunctions.h"
 #include "SSD1306Wire.h"
 
-// ----- wip wifi test -----
-const char* ssid     = "";     // your network SSID (name of wifi network)
-const char* password = ""; // your network password
-const char* client_id = "";
-const char* client_secret = "";
-const char*  server = "www.howsmyssl.com";  // Server URL
-WiFiClientSecure client;
-// ----- wip wifi test -----
-
-// ----- wip spotify test -----
-const char* host = "api.spotify.com";
-const char* token_host = "accounts.spotify.com";
-const int httpsPort = 443;
-// ----- wip spotify test -----
-
-HijelHID_BLEKeyboard keyboard;
 SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
 
 const int ALL_BTN_PINS[numBtnPins] = {
@@ -29,6 +11,8 @@ const int ALL_BTN_PINS[numBtnPins] = {
     VOL_DOWN_PIN,
     VOL_UP_PIN
 };
+
+HelperFunctions hf;
 
 void initializeDisplay()
 {
@@ -50,7 +34,7 @@ void initializeDisplay()
 void setup() {
     Serial.begin(115200);
     delay(100); // Give serial time to init
-    setPullupPins(ALL_BTN_PINS);
+    hf.setPullupPins(ALL_BTN_PINS);
 
     keyboard.setLogLevel(HIDLogLevel::Normal);
     keyboard.begin();
@@ -113,16 +97,16 @@ void setup() {
     [ ] exchange received auth code for access token
     */
     Serial.println();
-    Serial.println("access token: " + getAccessToken());
-    String codeVerifier = generateCodeVerifier(64);
+    Serial.println("access token: " + hf.getAccessToken());
+    String codeVerifier = hf.generateCodeVerifier(64);
 
     // ----- wip base64 encode test -----
     std::vector<uint8_t> data(codeVerifier.begin(), codeVerifier.end());
-	auto encoded = encode_base64(data);
-	auto decoded = decode_base64(encoded);
+	auto encoded = hf.encode_base64(data);
+	auto decoded = hf.decode_base64(encoded);
 
 	Serial.printf("Original (%d bytes): ", data.size());
-	printBlockAsUtf8(data);
+	hf.printBlockAsUtf8(data);
 	Serial.println();
 
 	Serial.printf("Encoded (%d bytes): ", encoded.length());
@@ -130,10 +114,10 @@ void setup() {
 	Serial.println();
 
 	Serial.printf("Decoded (%d bytes): ", decoded.size());
-	printBlockAsUtf8(decoded);
+	hf.printBlockAsUtf8(decoded);
     // ----- wip base64 encode test -----
 
-    String codeVerifiedHashed = generateSHA256(codeVerifier)
+    String codeVerifiedHashed = hf.generateSHA256(codeVerifier)
     Serial.println("code verifier: " + codeVerifier);
     Serial.println("code verifier SHA256: " + codeVerifiedHashed);
     // ----- wip spotify test -----
@@ -148,6 +132,6 @@ void loop() {
     //     }
     //     return;
     // }
-    checkBtnPresses();
+    hf.checkBtnPresses();
     delay(50);
 }

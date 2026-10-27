@@ -2,8 +2,11 @@
 
 // ----- HARDWARE HELPER FUNCTIONS -----
 
+// TODO DEFINE ALL VARS IN CPP FILE \/\/\\/\/
+// TODO Cleanup, test, and remove unneeded/test code \/\/\\/\/
+
 void HelperFunctions::setPullupPins(const int pins[])
-{// TODO DEFINE ALL VARS IN CPP FILE \/\/\\/\/
+{
     for (int i = 0; i < numBtnPins; i++)
     {
         pinMode(pins[i], INPUT_PULLUP);
