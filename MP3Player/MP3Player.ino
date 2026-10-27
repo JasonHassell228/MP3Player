@@ -4,15 +4,14 @@
 #include "HelperFunctions.h"
 #include "SSD1306Wire.h"
 
-SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
-
-const int ALL_BTN_PINS[numBtnPins] = {
-    PLAY_PAUSE_PIN,
-    VOL_DOWN_PIN,
-    VOL_UP_PIN
+HelperFunctions hf;
+const int ALL_BTN_PINS[hf.numBtnPins] = {
+    hf.PLAY_PAUSE_PIN,
+    hf.VOL_DOWN_PIN,
+    hf.VOL_UP_PIN
 };
 
-HelperFunctions hf;
+SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32);
 
 void initializeDisplay()
 {
@@ -36,8 +35,8 @@ void setup() {
     delay(100); // Give serial time to init
     hf.setPullupPins(ALL_BTN_PINS);
 
-    keyboard.setLogLevel(HIDLogLevel::Normal);
-    keyboard.begin();
+    hf.keyboard.setLogLevel(HIDLogLevel::Normal);
+    hf.keyboard.begin();
 
     // TODO Test why this doesn't work \/\/\/\/
     // ----- DISPLAY TEST -----
@@ -46,8 +45,8 @@ void setup() {
     Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
     // ----- wip wifi test -----
     Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
-    WiFi.begin(ssid, password);
+    Serial.println(hf.ssid);
+    WiFi.begin(hf.ssid, hf.password);
 
     // attempt to connect to Wifi network:
     while (WiFi.status() != WL_CONNECTED) {
@@ -57,22 +56,22 @@ void setup() {
     }
 
     Serial.print("Connected to ");
-    Serial.println(ssid);
+    Serial.println(hf.ssid);
 
     Serial.println("\nStarting connection to server...");
-    client.setInsecure();//skip verification
-    if (!client.connect(server, 443))
+    hf.client.setInsecure();//skip verification
+    if (!hf.client.connect(hf.server, 443))
         Serial.println("Connection failed!");
     else {
         Serial.println("Connected to server!");
         // Make a HTTP request:
-        client.println("GET https://www.howsmyssl.com/a/check HTTP/1.0");
-        client.println("Host: www.howsmyssl.com");
-        client.println("Connection: close");
-        client.println();
+        hf.client.println("GET https://www.howsmyssl.com/a/check HTTP/1.0");
+        hf.client.println("Host: www.howsmyssl.com");
+        hf.client.println("Connection: close");
+        hf.client.println();
 
-        while (client.connected()) {
-        String line = client.readStringUntil('\n');
+        while (hf.client.connected()) {
+        String line = hf.client.readStringUntil('\n');
         if (line == "\r") {
             Serial.println("headers received");
             break;
@@ -80,12 +79,12 @@ void setup() {
         }
         // if there are incoming bytes available
         // from the server, read them and print them:
-        while (client.available()) {
-        char c = client.read();
+        while (hf.client.available()) {
+        char c = hf.client.read();
         Serial.write(c);
         }
 
-        client.stop();
+        hf.client.stop();
     }
     // ----- wip wifi test -----
 
@@ -117,9 +116,9 @@ void setup() {
 	hf.printBlockAsUtf8(decoded);
     // ----- wip base64 encode test -----
 
-    std::string test = codeVerifier.c_str();
-    auto codeVerifiedHashed = hf.generateSHA256(test);
-    Serial.println("code verifier: " + codeVerifier);
+    std::string cStrCodeVerifier = codeVerifier.c_str();
+    auto codeVerifiedHashed = hf.generateSHA256(cStrCodeVerifier);
+    Serial.println("code verifier: " + cStrCodeVerifier);
     Serial.println("code verifier SHA256: ");
     for (uint8_t byte : codeVerifiedHashed) {
         Serial.print(byte);
