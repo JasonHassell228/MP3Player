@@ -117,9 +117,15 @@ void setup() {
 	hf.printBlockAsUtf8(decoded);
     // ----- wip base64 encode test -----
 
-    String codeVerifiedHashed = hf.generateSHA256(codeVerifier)
+    std::string test = codeVerifier.c_str();
+    auto codeVerifiedHashed = hf.generateSHA256(test);
     Serial.println("code verifier: " + codeVerifier);
-    Serial.println("code verifier SHA256: " + codeVerifiedHashed);
+    Serial.println("code verifier SHA256: ");
+    for (uint8_t byte : codeVerifiedHashed) {
+        Serial.print(byte);
+        Serial.print(" ");
+    }
+    Serial.println();
     // ----- wip spotify test -----
 }
 
