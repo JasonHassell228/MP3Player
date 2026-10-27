@@ -21,22 +21,14 @@ const char* token_host = "accounts.spotify.com";
 const int httpsPort = 443;
 // ----- wip spotify test -----
 
-const int PLAY_PAUSE_PIN = 18;
-const int VOL_DOWN_PIN = 5;
-const int VOL_UP_PIN = 19;
-const int numBtnPins = 3;
-
-const int SCREEN_SDA_PIN = 23;
-const int SCREEN_SCK_PIN = 22;
+HijelHID_BLEKeyboard keyboard;
+SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
 
 const int ALL_BTN_PINS[numBtnPins] = {
     PLAY_PAUSE_PIN,
     VOL_DOWN_PIN,
     VOL_UP_PIN
-    };
-
-HijelHID_BLEKeyboard keyboard;
-SSD1306Wire display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32);
+};
 
 void initializeDisplay()
 {

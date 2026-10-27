@@ -3,7 +3,7 @@
 // ----- HARDWARE HELPER FUNCTIONS -----
 
 void HelperFunctions::setPullupPins(const int pins[])
-{
+{// TODO DEFINE ALL VARS IN CPP FILE \/\/\\/\/
     for (int i = 0; i < numBtnPins; i++)
     {
         pinMode(pins[i], INPUT_PULLUP);
