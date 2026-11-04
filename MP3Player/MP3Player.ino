@@ -42,10 +42,10 @@ void setup() {
     // ----- DISPLAY TEST -----
     initializeDisplay();
 
-    Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
+    // Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
     // ----- wip wifi test -----
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(hf.ssid);
+    // Serial.print("Attempting to connect to SSID: ");
+    // Serial.println(hf.ssid);
     WiFi.begin(hf.ssid, hf.password);
 
     // attempt to connect to Wifi network:
@@ -91,7 +91,7 @@ void setup() {
     // ----- wip spotify test -----
     /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
     [x] generate code verifier
-    [ ] generate code challenge (SHA 256 hash) (+ base64 encode?)
+    [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
     [ ] GET request to /authorize endpoint
     [ ] exchange received auth code for access token
     */
@@ -99,8 +99,19 @@ void setup() {
     Serial.println("access token: " + hf.getAccessToken());
     String codeVerifier = hf.generateCodeVerifier(64);
 
+    std::string codeVerifierCStr = codeVerifier.c_str();
+    auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
+
+    Serial.println("code verifier: " + codeVerifier);
+    Serial.println("code verifier SHA256: ");
+    for (uint8_t byte : codeVerifierHashed) {
+        Serial.print(byte);
+        Serial.print(" ");
+    }
+    Serial.println();
+
     // ----- wip base64 encode test -----
-    std::vector<uint8_t> data(codeVerifier.begin(), codeVerifier.end());
+    std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
 	auto encoded = hf.encode_base64(data);
 	auto decoded = hf.decode_base64(encoded);
 
@@ -114,17 +125,16 @@ void setup() {
 
 	Serial.printf("Decoded (%d bytes): ", decoded.size());
 	hf.printBlockAsUtf8(decoded);
-    // ----- wip base64 encode test -----
+    Serial.println();
 
-    std::string codeVerifierCStr = codeVerifier.c_str();
-    auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
-    Serial.println("code verifier: " + codeVerifier);
-    Serial.println("code verifier SHA256: ");
-    for (uint8_t byte : codeVerifierHashed) {
+    Serial.println("BACK TO ORIGINAL code verifier SHA256: ");
+    for (uint8_t byte : decoded) {
         Serial.print(byte);
         Serial.print(" ");
     }
     Serial.println();
+    // ----- wip base64 encode test -----
+
     // ----- wip spotify test -----
 }
 
