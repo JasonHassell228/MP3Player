@@ -123,16 +123,6 @@ void setup() {
 	Serial.print(encoded.c_str());
 	Serial.println();
 
-	Serial.printf("Decoded (%d bytes): ", decoded.size());
-	hf.printBlockAsUtf8(decoded);
-    Serial.println();
-
-    Serial.println("BACK TO ORIGINAL code verifier SHA256: ");
-    for (uint8_t byte : decoded) {
-        Serial.print(byte);
-        Serial.print(" ");
-    }
-    Serial.println();
     // ----- wip base64 encode test -----
 
     // ----- wip spotify test -----
