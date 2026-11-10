@@ -48,7 +48,6 @@ class HelperFunctions
     std::vector<uint8_t> generateSHA256(std::string& text);
     void printBlockAsUtf8(std::vector<uint8_t> data);
     std::string encode_base64(std::vector<uint8_t>& data);
-    std::vector<uint8_t> decode_base64(std::string& text);
     String getAccessToken();
 };
 

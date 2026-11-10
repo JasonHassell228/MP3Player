@@ -75,7 +75,7 @@ std::string replaceBase64UrlChars(std::vector<unsigned char>& replaceString, int
             replaceString[actualLen++] = '-';
         } else if (replaceString[i] == '/') {
             replaceString[actualLen++] = '_';
-        } else if (replaceString[i] == '=') {
+        } else if (replaceString[i] == '=') { // '=' is a padding char in base64 encoding
             // Stop at padding characters
             break;
         } else {
@@ -94,29 +94,7 @@ std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 	std::vector<uint8_t> encoded(outputLength);
 	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
 
-	// std::string rst((char*)encoded.data(), outputLength);
-	// return rst;
     return replaceBase64UrlChars(encoded, outputLength);
-}
-
-std::vector<uint8_t> HelperFunctions::decode_base64(std::string& text)
-{
-    std::string base64 = text;
-
-    // Replace -, _ with +, /, as these were removed during encoding to conform with Base64Url format
-    for (char& c : base64) {
-        if (c == '-') c = '+';
-        else if (c == '_') c = '/';
-    }
-
-    while (base64.length() % 4 != 0) base64 += '=';
-
-	size_t outputLength;
-	mbedtls_base64_decode(nullptr, 0, &outputLength, (unsigned char*)base64.c_str(), base64.length());
-
-	std::vector<uint8_t> decoded(outputLength);
-	mbedtls_base64_decode(decoded.data(), outputLength, &outputLength, (unsigned char*)base64.c_str(), base64.length());
-	return decoded;
 }
 
 String HelperFunctions::getAccessToken() {
