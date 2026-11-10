@@ -2,7 +2,6 @@
 
 // ----- HARDWARE HELPER FUNCTIONS -----
 
-// TODO DEFINE ALL VARS IN CPP FILE \/\/\\/\/
 // TODO Cleanup, test, and remove unneeded/test code \/\/\\/\/
 
 void HelperFunctions::setPullupPins(const int pins[])
@@ -68,6 +67,25 @@ void HelperFunctions::printBlockAsUtf8(std::vector<uint8_t> data)
 	}
 }
 
+std::string replaceBase64UrlChars(std::vector<unsigned char>& replaceString, int encodedLen)
+{
+    size_t actualLen = 0;
+    for (size_t i = 0; i < encodedLen; i++) {
+        if (replaceString[i] == '+') {
+            replaceString[actualLen++] = '-';
+        } else if (replaceString[i] == '/') {
+            replaceString[actualLen++] = '_';
+        } else if (replaceString[i] == '=') {
+            // Stop at padding characters
+            break;
+        } else {
+            replaceString[actualLen++] = replaceString[i];
+        }
+    }
+    replaceString.resize(actualLen);
+    return std::string(replaceString.begin(), replaceString.end());
+}
+
 std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 {
 	size_t outputLength;
@@ -76,17 +94,28 @@ std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 	std::vector<uint8_t> encoded(outputLength);
 	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
 
-	std::string rst((char*)encoded.data(), outputLength);
-	return rst;
+	// std::string rst((char*)encoded.data(), outputLength);
+	// return rst;
+    return replaceBase64UrlChars(encoded, outputLength);
 }
 
 std::vector<uint8_t> HelperFunctions::decode_base64(std::string& text)
 {
+    std::string base64 = text;
+
+    // Replace -, _ with +, /, as these were removed during encoding to conform with Base64Url format
+    for (char& c : base64) {
+        if (c == '-') c = '+';
+        else if (c == '_') c = '/';
+    }
+
+    while (base64.length() % 4 != 0) base64 += '=';
+
 	size_t outputLength;
-	mbedtls_base64_decode(nullptr, 0, &outputLength, (unsigned char*)text.c_str(), text.length());
+	mbedtls_base64_decode(nullptr, 0, &outputLength, (unsigned char*)base64.c_str(), base64.length());
 
 	std::vector<uint8_t> decoded(outputLength);
-	mbedtls_base64_decode(decoded.data(), outputLength, &outputLength, (unsigned char*)text.c_str(), text.length());
+	mbedtls_base64_decode(decoded.data(), outputLength, &outputLength, (unsigned char*)base64.c_str(), base64.length());
 	return decoded;
 }
 
