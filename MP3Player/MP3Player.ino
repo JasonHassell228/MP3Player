@@ -38,9 +38,9 @@ void setup() {
     hf.keyboard.setLogLevel(HIDLogLevel::Normal);
     hf.keyboard.begin();
 
-    // TODO Test why this doesn't work \/\/\/\/
     // ----- DISPLAY TEST -----
     initializeDisplay();
+    // ----- DISPLAY TEST -----
 
     // Serial.println("Ready. Pair via Bluetooth settings, then press BOOT to type.");
     // ----- wip wifi test -----
@@ -92,8 +92,9 @@ void setup() {
     /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
     [x] generate code verifier
     [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
-    [ ] GET request to /authorize endpoint
-    [ ] exchange received auth code for access token
+    [ ] Host web server on esp32 to display auth link to user
+    [ ] Generate auth link, serve on esp32 web page, get user to click
+    [ ] Copy auth code from above into box on webpage, use to auth this spotify sesh
     */
     Serial.println();
     Serial.println("access token: " + hf.getAccessToken());
