@@ -2,6 +2,7 @@
 
 // ----- HARDWARE HELPER FUNCTIONS -----
 
+// TODO standardize either String or std::string?
 // TODO Cleanup, test, and remove unneeded/test code \/\/\\/\/
 
 void HelperFunctions::setPullupPins(const int pins[])
@@ -31,7 +32,6 @@ void HelperFunctions::pressBluetoothBtn(const int pin, uint16_t bluetoothBtn)
 
 // ----- SPOTIFY API HELPER FUNCTIONS -----
 
-// ----- wip spotify test -----
 String HelperFunctions::generateCodeVerifier(int length) {
     String text = "";
     String possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -97,4 +97,21 @@ std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
     return replaceBase64UrlChars(encoded, outputLength);
 }
 
-// ----- wip spotify test -----
+// ----- GENERAL HELPER FUNCTIONS -----
+String HelperFunctions::generateSpotifyAuthURL(const String& clientId, const String& codeChallenge)
+{
+    static const char format[] =
+        "https://accounts.spotify.com/authorize?"
+        "client_id=%s"
+        "&response_type=code"
+        "&redirect_uri=http://127.0.0.1:8080/callback"
+        "&code_challenge_method=S256"
+        "&code_challenge=%s"
+        "&scope=user-read-playback-state user-modify-playback-state"; // TODO add more perms as needed
+    
+    size_t len = snprintf(nullptr, 0, format, clientId.c_str(), codeChallenge.c_str());
+    char url[len + 1];
+    snprintf(url, sizeof(url), format, clientId.c_str(), codeChallenge.c_str());
+    
+    return String(url);
+}

@@ -1,4 +1,5 @@
 // Other libs imported in HelperFunctions.h
+#include <WebServer.h>
 #include <WiFi.h>
 #include <Wire.h>
 #include "HelperFunctions.h"
@@ -12,6 +13,34 @@ const int ALL_BTN_PINS[hf.numBtnPins] = {
 };
 
 SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32);
+
+// ----- wip local webserver test -----
+// Create web server on port 80
+WebServer server(80);
+
+// Main webpage
+void handleRoot(const String& codeChallenge) {
+  String authLink = hf.generateSpotifyAuthURL(String(hf.client_id), codeChallenge);
+
+  String html = R"rawliteral(
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>ESP32 Test Web Server</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+      <h1>ESP32 Test</h1>
+      <p>ESP32 web server is working!</p>
+      <p>Spotify auth link:</p>
+      <a href=") + authLink + R"rawliteral("></a>
+    </body>
+    </html>
+  )rawliteral";
+
+  server.send(200, "text/html", html);
+}
+// ----- wip local webserver test -----
 
 void initializeDisplay()
 {
@@ -58,7 +87,7 @@ void setup() {
     /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
     [x] generate code verifier
     [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
-    [ ] Host web server on esp32 to display auth link to user
+    [x] Host web server on esp32 to display auth link to user
     [ ] Generate auth link, serve on esp32 web page, get user to click
     [ ] Copy auth code from above into box on webpage, use to auth this spotify sesh
     */
@@ -79,19 +108,32 @@ void setup() {
 
     // ----- wip base64 encode test -----
     std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
-	auto encoded = hf.encode_base64(data);
+	auto codeChallenge = hf.encode_base64(data);
 
 	Serial.printf("Original (%d bytes): ", data.size());
 	hf.printBlockAsUtf8(data);
 	Serial.println();
 
-	Serial.printf("Encoded (%d bytes): ", encoded.length());
-	Serial.print(encoded.c_str());
+	Serial.printf("Encoded (code challenge) (%d bytes): ", codeChallenge.length());
+	Serial.print(codeChallenge.c_str());
 	Serial.println();
 
     // ----- wip base64 encode test -----
 
     // ----- wip spotify test -----
+
+    // ----- wip local webserver test -----
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    // Configure routes
+    server.on("/", HTTP_GET, [&]() {handleRoot(codeChallenge)});
+
+    // Start server
+    server.begin();
+
+    Serial.println("Web server started");
+    // ----- wip local webserver test -----
 }
 
 void loop() {
@@ -104,5 +146,9 @@ void loop() {
     //     return;
     // }
     hf.checkBtnPresses();
+    // ----- wip local webserver test -----
+    server.handleClient();
+    // ----- wip local webserver test -----
+
     delay(50);
 }

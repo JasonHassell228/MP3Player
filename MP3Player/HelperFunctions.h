@@ -37,6 +37,7 @@ class HelperFunctions
 
     String generateCodeVerifier(int length);
     std::vector<uint8_t> generateSHA256(std::string& text);
+    String generateSpotifyAuthURL(const String& clientId, const String& codeChallenge);
     void printBlockAsUtf8(std::vector<uint8_t> data);
     std::string encode_base64(std::vector<uint8_t>& data);
 };
