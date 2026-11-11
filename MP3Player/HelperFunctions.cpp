@@ -97,46 +97,4 @@ std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
     return replaceBase64UrlChars(encoded, outputLength);
 }
 
-String HelperFunctions::getAccessToken() {
-    client.setTimeout(8000); // Reduced timeout
-    
-    if (!client.connect(token_host, httpsPort)) {
-        return "";
-    }
-
-    String body = String("grant_type=client_credentials") +
-                  "&client_id=" + String(client_id) +
-                  "&client_secret=" + String(client_secret);
-
-    client.println("POST /api/token HTTP/1.1");
-    client.println("Host: accounts.spotify.com");
-    client.println("Content-Type: application/x-www-form-urlencoded");
-    client.print("Content-Length: ");
-    client.println(body.length());
-    client.println("Connection: close");
-    client.println();
-    client.print(body);
-
-    unsigned long timeout = millis() + 8000;
-    while (client.connected() && millis() < timeout) {
-        String line = client.readStringUntil('\n');
-        if (line == "\r") break;
-    }
-
-    if (millis() >= timeout) {
-        client.stop();
-        return "";
-    }
-
-    String response = client.readString();
-    client.stop();
-    
-    int startIndex = response.indexOf("\"access_token\":\"") + 16;
-    int endIndex = response.indexOf("\"", startIndex);
-    if (startIndex > 15 && endIndex > startIndex) {
-        return response.substring(startIndex, endIndex);
-    }
-
-    return "";
-}
 // ----- wip spotify test -----

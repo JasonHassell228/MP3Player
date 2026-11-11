@@ -22,13 +22,6 @@ class HelperFunctions
     const int SCREEN_SDA_PIN = 23;
     const int SCREEN_SCK_PIN = 22;
 
-    // Consts for spotify api
-    // ----- wip spotify test -----
-    const char* host = "api.spotify.com";
-    const char* token_host = "accounts.spotify.com";
-    const int httpsPort = 443;
-    // ----- wip spotify test -----
-
     // ----- wip wifi test -----
     const char* ssid     =      "";     // your network SSID (name of wifi network)
     const char* password =      ""; // your network password
@@ -48,7 +41,6 @@ class HelperFunctions
     std::vector<uint8_t> generateSHA256(std::string& text);
     void printBlockAsUtf8(std::vector<uint8_t> data);
     std::string encode_base64(std::vector<uint8_t>& data);
-    String getAccessToken();
 };
 
 #endif
