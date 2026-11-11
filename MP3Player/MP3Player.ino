@@ -68,7 +68,8 @@ void setup() {
     std::string codeVerifierCStr = codeVerifier.c_str();
     auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
 
-    Serial.println("code verifier: " + codeVerifier);
+    Serial.print("code verifier: ");
+    Serial.println(codeVerifier);
     Serial.println("code verifier SHA256: ");
     for (uint8_t byte : codeVerifierHashed) {
         Serial.print(byte);
