@@ -1,8 +1,6 @@
 #ifndef HelperFunctions_h
 #define HelperFunctions_h
 
-#include <Arduino.h>
-#include <cstdint>
 #include <HijelHID_BLEKeyboard.h>
 #include <mbedtls/md.h>     // SHA-256 / message digest
 #include <mbedtls/base64.h> // Base64 encoding and decoding
