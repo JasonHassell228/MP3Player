@@ -33,7 +33,7 @@ void handleRoot(const String& codeChallenge) {
       <h1>Spotify authentication</h1>
       <p>
         Spotify auth link:
-        <a href=")rawliteral" + authLink + R"rawliteral(">Auth link</a>
+        <a href=")rawliteral" + authLink + R"rawliteral(" target="_blank">Auth link</a>
       </p>
     </body>
     </html>
@@ -89,7 +89,7 @@ void setup() {
     [x] generate code verifier
     [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
     [x] Host web server on esp32 to display auth link to user
-    [ ] Generate auth link, serve on esp32 web page, get user to click
+    [x] Generate auth link, serve on esp32 web page, get user to click
     [ ] Copy auth code from above into box on webpage, use to auth this spotify sesh
     */
     Serial.println();
