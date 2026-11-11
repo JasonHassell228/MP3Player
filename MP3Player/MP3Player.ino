@@ -35,6 +35,14 @@ void handleRoot(const String& codeChallenge) {
         Spotify auth link:
         <a href=")rawliteral" + authLink + R"rawliteral(" target="_blank">Auth link</a>
       </p>
+      <p>Here's the authorisation link. It will open a login page for Spotify in a new tab.</p>
+      <p>Once you login, just copy the code parameter from the URL. It should look something like this:</p>
+      <p>http://127.0.0.1:8080/?code=AQCYMmZY1PagU3rt4ji_9h8yGREfBHOZEpqEH1W204caWfeyLA70...</p>
+      <p>You want the part after 'code='!</p>
+      <form action="/auth-code" method="GET">
+        <input name="code" placeholder="Paste Spotify auth code">
+        <button type="submit">Submit</button>
+      </form>
     </body>
     </html>
   )rawliteral";
@@ -90,7 +98,8 @@ void setup() {
     [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
     [x] Host web server on esp32 to display auth link to user
     [x] Generate auth link, serve on esp32 web page, get user to click
-    [ ] Copy auth code from above into box on webpage, use to auth this spotify sesh
+    [x] Copy auth code from above into box on webpage, use to auth this spotify sesh
+    [ ] Use authCode to make spotify API requests!
     */
     Serial.println();
     String codeVerifier = hf.generateCodeVerifier(64);
@@ -129,6 +138,10 @@ void setup() {
 
     // Configure routes
     server.on("/", HTTP_GET, [&]() {handleRoot(codeChallenge);});
+    server.on("/auth-code", HTTP_GET, [&]() {
+        String authCode = server.arg("code");
+        Serial.println(authCode); // TODO use authCode to make spotify API requests!
+    });
 
     // Start server
     server.begin();
