@@ -30,10 +30,11 @@ void handleRoot(const String& codeChallenge) {
       <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
-      <h1>ESP32 Test</h1>
-      <p>ESP32 web server is working!</p>
-      <p>Spotify auth link:</p>
-      <a href=") + authLink + R"rawliteral("></a>
+      <h1>Spotify authentication</h1>
+      <p>
+        Spotify auth link:
+        <a href=")rawliteral" + authLink + R"rawliteral(">Auth link</a>
+      </p>
     </body>
     </html>
   )rawliteral";
@@ -94,7 +95,7 @@ void setup() {
     Serial.println();
     String codeVerifier = hf.generateCodeVerifier(64);
 
-    std::string codeVerifierCStr = codeVerifier.c_str();
+    String codeVerifierCStr = codeVerifier.c_str();
     auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
 
     Serial.print("code verifier: ");
@@ -127,7 +128,7 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     // Configure routes
-    server.on("/", HTTP_GET, [&]() {handleRoot(codeChallenge)});
+    server.on("/", HTTP_GET, [&]() {handleRoot(codeChallenge);});
 
     // Start server
     server.begin();

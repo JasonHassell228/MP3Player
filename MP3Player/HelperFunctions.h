@@ -4,7 +4,6 @@
 #include <HijelHID_BLEKeyboard.h>
 #include <mbedtls/md.h>     // SHA-256 / message digest
 #include <mbedtls/base64.h> // Base64 encoding and decoding
-#include <string>
 #include <vector>
 #include <WiFiClientSecure.h>
 
@@ -36,10 +35,10 @@ class HelperFunctions
     void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
 
     String generateCodeVerifier(int length);
-    std::vector<uint8_t> generateSHA256(std::string& text);
+    std::vector<uint8_t> generateSHA256(String& text);
     String generateSpotifyAuthURL(const String& clientId, const String& codeChallenge);
     void printBlockAsUtf8(std::vector<uint8_t> data);
-    std::string encode_base64(std::vector<uint8_t>& data);
+    String encode_base64(std::vector<uint8_t>& data);
 };
 
 #endif

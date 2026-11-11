@@ -42,7 +42,7 @@ String HelperFunctions::generateCodeVerifier(int length) {
     return text;
 }
 
-std::vector<uint8_t> HelperFunctions::generateSHA256(std::string& text)
+std::vector<uint8_t> HelperFunctions::generateSHA256(String& text)
 {
 	std::vector<uint8_t> hash(32);
 
@@ -67,26 +67,18 @@ void HelperFunctions::printBlockAsUtf8(std::vector<uint8_t> data)
 	}
 }
 
-std::string replaceBase64UrlChars(std::vector<unsigned char>& replaceString, int encodedLen)
+String replaceBase64UrlChars(String replaceString)
 {
-    size_t actualLen = 0;
-    for (size_t i = 0; i < encodedLen; i++) {
-        if (replaceString[i] == '+') {
-            replaceString[actualLen++] = '-';
-        } else if (replaceString[i] == '/') {
-            replaceString[actualLen++] = '_';
-        } else if (replaceString[i] == '=') { // '=' is a padding char in base64 encoding
-            // Stop at padding characters
-            break;
-        } else {
-            replaceString[actualLen++] = replaceString[i];
-        }
+    replaceString.replace("+", "-");
+    replaceString.replace("/", "_");
+    int padding = replaceString.indexOf('=');
+    if (padding != -1) {
+        replaceString.remove(padding);
     }
-    replaceString.resize(actualLen);
-    return std::string(replaceString.begin(), replaceString.end());
+    return replaceString;
 }
 
-std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
+String HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 {
 	size_t outputLength;
 	mbedtls_base64_encode(nullptr, 0, &outputLength, (unsigned char*)data.data(), data.size());
@@ -94,7 +86,7 @@ std::string HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 	std::vector<uint8_t> encoded(outputLength);
 	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
 
-    return replaceBase64UrlChars(encoded, outputLength);
+    return replaceBase64UrlChars(String((char*)encoded.data()));
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----
@@ -104,7 +96,7 @@ String HelperFunctions::generateSpotifyAuthURL(const String& clientId, const Str
         "https://accounts.spotify.com/authorize?"
         "client_id=%s"
         "&response_type=code"
-        "&redirect_uri=http://127.0.0.1:8080/callback"
+        "&redirect_uri=http://127.0.0.1:8080"
         "&code_challenge_method=S256"
         "&code_challenge=%s"
         "&scope=user-read-playback-state user-modify-playback-state"; // TODO add more perms as needed
@@ -112,6 +104,6 @@ String HelperFunctions::generateSpotifyAuthURL(const String& clientId, const Str
     size_t len = snprintf(nullptr, 0, format, clientId.c_str(), codeChallenge.c_str());
     char url[len + 1];
     snprintf(url, sizeof(url), format, clientId.c_str(), codeChallenge.c_str());
-    
+
     return String(url);
 }
