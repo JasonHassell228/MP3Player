@@ -90,20 +90,23 @@ String HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----
-String HelperFunctions::generateSpotifyAuthURL(const String& clientId, const String& codeChallenge)
+String HelperFunctions::generateSpotifyAuthURL(const String& codeChallenge)
 {
     static const char format[] =
         "https://accounts.spotify.com/authorize?"
         "client_id=%s"
         "&response_type=code"
-        "&redirect_uri=http://127.0.0.1:8080"
+        "&redirect_uri=%s"
         "&code_challenge_method=S256"
         "&code_challenge=%s"
-        "&scope=user-read-playback-state user-modify-playback-state"; // TODO add more perms as needed
+        "&scope=user-read-currently-playing user-read-playback-state user-modify-playback-state"; // TODO add more perms as needed
     
-    size_t len = snprintf(nullptr, 0, format, clientId.c_str(), codeChallenge.c_str());
+    size_t len = snprintf(nullptr, 0, format, client_id,
+                                              spotify_redirect_uri,
+                                              codeChallenge.c_str());
     char url[len + 1];
-    snprintf(url, sizeof(url), format, clientId.c_str(), codeChallenge.c_str());
-
+    snprintf(url, sizeof(url), format, client_id,
+                                       spotify_redirect_uri,
+                                       codeChallenge.c_str());
     return String(url);
 }

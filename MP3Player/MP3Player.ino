@@ -11,6 +11,7 @@ const int ALL_BTN_PINS[hf.numBtnPins] = {
     hf.VOL_DOWN_PIN,
     hf.VOL_UP_PIN
 };
+String authorizationCode = "";
 
 SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32);
 
@@ -20,7 +21,7 @@ WebServer server(80);
 
 // Main webpage
 void handleRoot(const String& codeChallenge) {
-  String authLink = hf.generateSpotifyAuthURL(String(hf.client_id), codeChallenge);
+  String authLink = hf.generateSpotifyAuthURL(codeChallenge);
 
   String html = R"rawliteral(
     <!DOCTYPE html>
@@ -38,7 +39,7 @@ void handleRoot(const String& codeChallenge) {
       <p>Here's the authorisation link. It will open a login page for Spotify in a new tab.</p>
       <p>Once you login, just copy the code parameter from the URL. It should look something like this:</p>
       <p>http://127.0.0.1:8080/?code=AQCYMmZY1PagU3rt4ji_9h8yGREfBHOZEpqEH1W204caWfeyLA70...</p>
-      <p>You want the part after 'code='!</p>
+      <p>You want the part after 'code=', make sure to strip out anything after &ubi= if it's there!</p>
       <form action="/auth-code" method="GET">
         <input name="code" placeholder="Paste Spotify auth code">
         <button type="submit">Submit</button>
@@ -139,8 +140,64 @@ void setup() {
     // Configure routes
     server.on("/", HTTP_GET, [&]() {handleRoot(codeChallenge);});
     server.on("/auth-code", HTTP_GET, [&]() {
-        String authCode = server.arg("code");
-        Serial.println(authCode); // TODO use authCode to make spotify API requests!
+        authorizationCode = server.arg("code");
+        Serial.println(authorizationCode); // TODO use authCode to make spotify API requests! (by getting access code)
+
+        // ----- wip Spotify exchange auth for access code test -----
+        String accessToken = "";
+        String body =
+          "grant_type=authorization_code" +
+          "&code=" + authorizationCode +
+          "&redirect_uri=" + hf.spotify_redirect_uri +
+          "&client_id=" + hf.client_id +
+          "&code_verifier=" + codeVerifier;
+
+        hf.client.connect("accounts.spotify.com", 443);
+
+        hf.client.println("POST /api/token HTTP/1.1");
+        hf.client.println("Host: accounts.spotify.com");
+        hf.client.println("Content-Type: application/x-www-form-urlencoded");
+        hf.client.println("Content-Length: " + String(body.length()));
+        hf.client.println("Connection: close");
+        hf.client.println();
+        hf.client.print(body);
+
+        Serial.println("body: ");
+        Serial.println(body);
+        Serial.print("finished printing body: ");
+
+        String response;
+        while (hf.client.connected() || hf.client.available()) {
+            if (hf.client.available()) response += hf.client.readString();
+        }
+
+        Serial.println("response: ");
+        Serial.println(response);
+        hf.client.stop();
+        // ----- wip Spotify exchange auth for access code test -----
+
+        // // ----- wip Spotify API test -----
+        // if (!hf.client.connect("api.spotify.com", 443)) {
+        //   Serial.println("Spotify connection failed 443");
+        // }
+
+        // hf.client.println("GET /v1/me/player/currently-playing HTTP/1.1");
+        // hf.client.println("Host: api.spotify.com");
+        // hf.client.println("Authorization: Bearer " + accessToken);
+        // hf.client.println("Connection: close");
+        // hf.client.println();
+
+        // response = "";
+
+        // while (hf.client.connected() || hf.client.available()) {
+        //     if (hf.client.available()) {
+        //         response += hf.client.readString();
+        //     }
+        // }
+        // Serial.println(response);
+        // hf.client.stop();
+        // return response;
+        // ----- wip Spotify API test -----
     });
 
     // Start server

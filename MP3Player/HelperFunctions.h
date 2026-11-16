@@ -23,9 +23,10 @@ class HelperFunctions
     const char* ssid     =      "";     // your network SSID (name of wifi network)
     const char* password =      ""; // your network password
     const char* client_id =     "";
-    const char* client_secret = "";
-    const char*  server = "www.howsmyssl.com";  // Server URL
+    const char* client_id = "cab9b9fea7a94032865a42e00736f48a";
+    const char* server = "www.howsmyssl.com"; // Server URL
     // ----- wip wifi test -----
+    const char* spotify_redirect_uri = "http://127.0.0.1:8080";
 
     HijelHID_BLEKeyboard keyboard;
     WiFiClientSecure client;
@@ -36,7 +37,7 @@ class HelperFunctions
 
     String generateCodeVerifier(int length);
     std::vector<uint8_t> generateSHA256(String& text);
-    String generateSpotifyAuthURL(const String& clientId, const String& codeChallenge);
+    String generateSpotifyAuthURL(const String& codeChallenge);
     void printBlockAsUtf8(std::vector<uint8_t> data);
     String encode_base64(std::vector<uint8_t>& data);
 };
