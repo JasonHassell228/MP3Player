@@ -6,12 +6,6 @@
 #include "SSD1306Wire.h"
 
 HelperFunctions hf;
-const int ALL_BTN_PINS[hf.numBtnPins] = {
-    hf.PLAY_PAUSE_PIN,
-    hf.VOL_DOWN_PIN,
-    hf.VOL_UP_PIN
-};
-String authorizationCode = "";
 
 SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32);
 
@@ -20,8 +14,8 @@ SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32)
 WebServer server(80);
 
 // Main webpage
-void handleRoot(const String& codeChallenge) {
-  String authLink = hf.generateSpotifyAuthURL(codeChallenge);
+void handleRoot() {
+  String authLink = hf.generateSpotifyAuthURL(hf.codeChallenge);
 
   String html = R"rawliteral(
     <!DOCTYPE html>
@@ -72,7 +66,7 @@ void initializeDisplay()
 void setup() {
     Serial.begin(115200);
     delay(100); // Give serial time to init
-    hf.setPullupPins(ALL_BTN_PINS);
+    hf.setPullupPins(hf.ALL_BTN_PINS);
 
     hf.keyboard.setLogLevel(HIDLogLevel::Normal);
     hf.keyboard.begin();
@@ -100,16 +94,17 @@ void setup() {
     [x] Host web server on esp32 to display auth link to user
     [x] Generate auth link, serve on esp32 web page, get user to click
     [x] Copy auth code from above into box on webpage, use to auth this spotify sesh
-    [ ] Use authCode to make spotify API requests!
+    [x] Use authCode to make spotify API requests!
+    [ ] Cleanup & refactor!
     */
     Serial.println();
-    String codeVerifier = hf.generateCodeVerifier(64);
+    hf.codeVerifier = hf.generateCodeVerifier(64);
 
-    String codeVerifierCStr = codeVerifier.c_str();
+    String codeVerifierCStr = hf.codeVerifier.c_str();
     auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
 
     Serial.print("code verifier: ");
-    Serial.println(codeVerifier);
+    Serial.println(hf.codeVerifier);
     Serial.println("code verifier SHA256: ");
     for (uint8_t byte : codeVerifierHashed) {
         Serial.print(byte);
@@ -119,14 +114,14 @@ void setup() {
 
     // ----- wip base64 encode test -----
     std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
-	auto codeChallenge = hf.encode_base64(data);
+	hf.codeChallenge = hf.encode_base64(data);
 
 	Serial.printf("Original (%d bytes): ", data.size());
 	hf.printBlockAsUtf8(data);
 	Serial.println();
 
-	Serial.printf("Encoded (code challenge) (%d bytes): ", codeChallenge.length());
-	Serial.print(codeChallenge.c_str());
+	Serial.printf("Encoded (code challenge) (%d bytes): ", hf.codeChallenge.length());
+	Serial.print(hf.codeChallenge.c_str());
 	Serial.println();
 
     // ----- wip base64 encode test -----
@@ -138,19 +133,26 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     // Configure routes
-    server.on("/", HTTP_GET, [&]() {handleRoot(codeChallenge);});
+    server.on("/", HTTP_GET, [&]() {handleRoot();});
     server.on("/auth-code", HTTP_GET, [&]() {
-        authorizationCode = server.arg("code");
-        Serial.println(authorizationCode); // TODO use authCode to make spotify API requests! (by getting access code)
+        hf.authorizationCode = server.arg("code");
+        Serial.println("authorizationCode before: ");
+        Serial.println(hf.authorizationCode);
+        int pos = hf.authorizationCode.indexOf("&ubi");
+        if (pos != -1) {
+            hf.authorizationCode.remove(pos);
+        }
+        Serial.println("authorizationCode after: ");
+        Serial.println(hf.authorizationCode);
 
         // ----- wip Spotify exchange auth for access code test -----
         String accessToken = "";
         String body =
-          "grant_type=authorization_code" +
-          "&code=" + authorizationCode +
-          "&redirect_uri=" + hf.spotify_redirect_uri +
+          "grant_type=authorization_code"
+          "&code=" + hf.authorizationCode +
+          "&redirect_uri=" + String(hf.spotify_redirect_uri) +
           "&client_id=" + hf.client_id +
-          "&code_verifier=" + codeVerifier;
+          "&code_verifier=" + hf.codeVerifier;
 
         hf.client.connect("accounts.spotify.com", 443);
 
@@ -173,30 +175,45 @@ void setup() {
 
         Serial.println("response: ");
         Serial.println(response);
+
+        JsonDocument doc;
+        deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
+        accessToken = doc["access_token"].as<String>();
+
+        Serial.println("FINAL ACCESS TOKEN: ");
+        Serial.println(accessToken);
         hf.client.stop();
         // ----- wip Spotify exchange auth for access code test -----
 
         // // ----- wip Spotify API test -----
-        // if (!hf.client.connect("api.spotify.com", 443)) {
-        //   Serial.println("Spotify connection failed 443");
-        // }
+        if (!hf.client.connect("api.spotify.com", 443)) {
+          Serial.println("Spotify connection failed 443");
+        }
 
-        // hf.client.println("GET /v1/me/player/currently-playing HTTP/1.1");
-        // hf.client.println("Host: api.spotify.com");
-        // hf.client.println("Authorization: Bearer " + accessToken);
-        // hf.client.println("Connection: close");
-        // hf.client.println();
+        hf.client.println("GET /v1/me/player/currently-playing HTTP/1.1");
+        hf.client.println("Host: api.spotify.com");
+        hf.client.println("Authorization: Bearer " + accessToken);
+        hf.client.println("Connection: close");
+        hf.client.println();
 
-        // response = "";
+        response = "";
 
-        // while (hf.client.connected() || hf.client.available()) {
-        //     if (hf.client.available()) {
-        //         response += hf.client.readString();
-        //     }
-        // }
-        // Serial.println(response);
-        // hf.client.stop();
-        // return response;
+        while (hf.client.connected() || hf.client.available()) {
+            if (hf.client.available()) {
+                response += hf.client.readString();
+            }
+        }
+        Serial.println("second response: ");
+        Serial.println(response);
+
+        deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
+        String song = doc["item"]["name"].as<String>();
+        String artist = doc["item"]["artists"][0]["name"].as<String>();
+
+        Serial.println(song);
+        Serial.println(artist);
+
+        hf.client.stop();
         // ----- wip Spotify API test -----
     });
 

@@ -2,7 +2,6 @@
 
 // ----- HARDWARE HELPER FUNCTIONS -----
 
-// TODO standardize either String or std::string?
 // TODO Cleanup, test, and remove unneeded/test code \/\/\\/\/
 
 void HelperFunctions::setPullupPins(const int pins[])
