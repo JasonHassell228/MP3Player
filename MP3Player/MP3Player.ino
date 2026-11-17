@@ -64,15 +64,19 @@ void initializeDisplay()
 }
 
 void setup() {
+  // General hardware setup
     Serial.begin(115200);
     delay(100); // Give serial time to init
-    hf.setPullupPins(hf.ALL_BTN_PINS);
+    hf.setPullupPins();
 
+    // Bluetooth keyboard setup
     hf.keyboard.setLogLevel(HIDLogLevel::Normal);
     hf.keyboard.begin();
 
+    // 128x32 pixel display setup
     initializeDisplay();
 
+    // Wifi setup
     WiFi.begin(hf.ssid, hf.password);
 
     // attempt to connect to Wifi network:
@@ -85,9 +89,8 @@ void setup() {
     Serial.print("Connected to ");
     Serial.println(hf.ssid);
 
-    hf.client.setInsecure();//skip verification
+    hf.client.setInsecure(); //skip verification
 
-    // ----- wip spotify test -----
     /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
     [x] generate code verifier
     [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
@@ -98,35 +101,13 @@ void setup() {
     [ ] Cleanup & refactor!
     */
     Serial.println();
+    // Generate code verifier
     hf.codeVerifier = hf.generateCodeVerifier(64);
-
     String codeVerifierCStr = hf.codeVerifier.c_str();
     auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
-
-    Serial.print("code verifier: ");
-    Serial.println(hf.codeVerifier);
-    Serial.println("code verifier SHA256: ");
-    for (uint8_t byte : codeVerifierHashed) {
-        Serial.print(byte);
-        Serial.print(" ");
-    }
-    Serial.println();
-
-    // ----- wip base64 encode test -----
+    // Encode code verifier as base64
     std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
-	hf.codeChallenge = hf.encode_base64(data);
-
-	Serial.printf("Original (%d bytes): ", data.size());
-	hf.printBlockAsUtf8(data);
-	Serial.println();
-
-	Serial.printf("Encoded (code challenge) (%d bytes): ", hf.codeChallenge.length());
-	Serial.print(hf.codeChallenge.c_str());
-	Serial.println();
-
-    // ----- wip base64 encode test -----
-
-    // ----- wip spotify test -----
+	  hf.codeChallenge = hf.encode_base64(data);
 
     // ----- wip local webserver test -----
     Serial.print("IP address: ");

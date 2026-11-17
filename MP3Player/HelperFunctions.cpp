@@ -2,13 +2,11 @@
 
 // ----- HARDWARE HELPER FUNCTIONS -----
 
-// TODO Cleanup, test, and remove unneeded/test code \/\/\\/\/
-
-void HelperFunctions::setPullupPins(const int pins[])
+void HelperFunctions::setPullupPins()
 {
     for (int i = 0; i < numBtnPins; i++)
     {
-        pinMode(pins[i], INPUT_PULLUP);
+        pinMode(ALL_BTN_PINS[i], INPUT_PULLUP);
     }
 }
 
@@ -58,16 +56,15 @@ std::vector<uint8_t> HelperFunctions::generateSHA256(String& text)
 	return hash;
 }
 
-void HelperFunctions::printBlockAsUtf8(std::vector<uint8_t> data)
+String HelperFunctions::encode_base64(std::vector<uint8_t>& data)
 {
-	for(int i = 0; i < data.size(); i++)
-	{
-		Serial.print((char)data[i]);
-	}
-}
+	size_t outputLength;
+	mbedtls_base64_encode(nullptr, 0, &outputLength, (unsigned char*)data.data(), data.size());
+	std::vector<uint8_t> encoded(outputLength);
+	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
 
-String replaceBase64UrlChars(String replaceString)
-{
+    // Replace base64 url chars
+    String replaceString = String((char*)encoded.data());
     replaceString.replace("+", "-");
     replaceString.replace("/", "_");
     int padding = replaceString.indexOf('=');
@@ -77,18 +74,6 @@ String replaceBase64UrlChars(String replaceString)
     return replaceString;
 }
 
-String HelperFunctions::encode_base64(std::vector<uint8_t>& data)
-{
-	size_t outputLength;
-	mbedtls_base64_encode(nullptr, 0, &outputLength, (unsigned char*)data.data(), data.size());
-
-	std::vector<uint8_t> encoded(outputLength);
-	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
-
-    return replaceBase64UrlChars(String((char*)encoded.data()));
-}
-
-// ----- GENERAL HELPER FUNCTIONS -----
 String HelperFunctions::generateSpotifyAuthURL(const String& codeChallenge)
 {
     static const char format[] =
@@ -99,7 +84,6 @@ String HelperFunctions::generateSpotifyAuthURL(const String& codeChallenge)
         "&code_challenge_method=S256"
         "&code_challenge=%s"
         "&scope=user-read-currently-playing user-read-playback-state user-modify-playback-state"; // TODO add more perms as needed
-    
     size_t len = snprintf(nullptr, 0, format, client_id,
                                               spotify_redirect_uri,
                                               codeChallenge.c_str());

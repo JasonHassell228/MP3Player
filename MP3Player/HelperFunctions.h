@@ -37,14 +37,13 @@ class HelperFunctions
     HijelHID_BLEKeyboard keyboard;
     WiFiClientSecure client;
 
-    void setPullupPins(const int pins[]);
+    void setPullupPins();
     void checkBtnPresses();
     void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
 
     String generateCodeVerifier(int length);
     std::vector<uint8_t> generateSHA256(String& text);
     String generateSpotifyAuthURL(const String& codeChallenge);
-    void printBlockAsUtf8(std::vector<uint8_t> data);
     String encode_base64(std::vector<uint8_t>& data);
 };
 
