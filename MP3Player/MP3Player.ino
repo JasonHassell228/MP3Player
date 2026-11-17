@@ -1,50 +1,9 @@
 // Other libs imported in HelperFunctions.h
-#include <WebServer.h>
-#include <WiFi.h>
-#include <Wire.h>
 #include "HelperFunctions.h"
-#include "SSD1306Wire.h"
 
 HelperFunctions hf;
 
 SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32);
-
-// ----- wip local webserver test -----
-// Create web server on port 80
-WebServer server(80);
-
-// Main webpage
-void handleRoot() {
-  String authLink = hf.generateSpotifyAuthURL(hf.codeChallenge);
-
-  String html = R"rawliteral(
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>ESP32 Test Web Server</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-    <body>
-      <h1>Spotify authentication</h1>
-      <p>
-        Spotify auth link:
-        <a href=")rawliteral" + authLink + R"rawliteral(" target="_blank">Auth link</a>
-      </p>
-      <p>Here's the authorisation link. It will open a login page for Spotify in a new tab.</p>
-      <p>Once you login, just copy the code parameter from the URL. It should look something like this:</p>
-      <p>http://127.0.0.1:8080/?code=AQCYMmZY1PagU3rt4ji_9h8yGREfBHOZEpqEH1W204caWfeyLA70...</p>
-      <p>You want the part after 'code=', make sure to strip out anything after &ubi= if it's there!</p>
-      <form action="/auth-code" method="GET">
-        <input name="code" placeholder="Paste Spotify auth code">
-        <button type="submit">Submit</button>
-      </form>
-    </body>
-    </html>
-  )rawliteral";
-
-  server.send(200, "text/html", html);
-}
-// ----- wip local webserver test -----
 
 void initializeDisplay()
 {
@@ -73,23 +32,10 @@ void setup() {
     hf.keyboard.setLogLevel(HIDLogLevel::Normal);
     hf.keyboard.begin();
 
-    // 128x32 pixel display setup
-    initializeDisplay();
+    initializeDisplay(); // 128x32 pixel display setup
 
     // Wifi setup
-    WiFi.begin(hf.ssid, hf.password);
-
-    // attempt to connect to Wifi network:
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print(".");
-        // wait 1 second for re-trying
-        delay(1000);
-    }
-
-    Serial.print("Connected to ");
-    Serial.println(hf.ssid);
-
-    hf.client.setInsecure(); //skip verification
+    hf.setupWifi(); // Will block until complete
 
     /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
     [x] generate code verifier
@@ -114,9 +60,9 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     // Configure routes
-    server.on("/", HTTP_GET, [&]() {handleRoot();});
-    server.on("/auth-code", HTTP_GET, [&]() {
-        hf.authorizationCode = server.arg("code");
+    hf.server.on("/", HTTP_GET, [&]() {hf.handleRoot();});
+    hf.server.on("/auth-code", HTTP_GET, [&]() {
+        hf.authorizationCode = hf.server.arg("code");
         Serial.println("authorizationCode before: ");
         Serial.println(hf.authorizationCode);
         int pos = hf.authorizationCode.indexOf("&ubi");
@@ -199,7 +145,7 @@ void setup() {
     });
 
     // Start server
-    server.begin();
+    hf.server.begin();
 
     Serial.println("Web server started");
     // ----- wip local webserver test -----
@@ -215,9 +161,7 @@ void loop() {
     //     return;
     // }
     hf.checkBtnPresses();
-    // ----- wip local webserver test -----
-    server.handleClient();
-    // ----- wip local webserver test -----
+    hf.server.handleClient();
 
     delay(50);
 }

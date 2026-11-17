@@ -1,5 +1,7 @@
 #include "HelperFunctions.h"
 
+HelperFunctions::HelperFunctions() : server(80) {} // Initialise web server to port 80
+
 // ----- HARDWARE HELPER FUNCTIONS -----
 
 void HelperFunctions::setPullupPins()
@@ -92,4 +94,53 @@ String HelperFunctions::generateSpotifyAuthURL(const String& codeChallenge)
                                        spotify_redirect_uri,
                                        codeChallenge.c_str());
     return String(url);
+}
+
+// Main webpage
+void HelperFunctions::handleRoot() {
+  String authLink = generateSpotifyAuthURL(codeChallenge);
+
+  String html = R"rawliteral(
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>ESP32 Test Web Server</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+      <h1>Spotify authentication</h1>
+      <p>
+        Spotify auth link:
+        <a href=")rawliteral" + authLink + R"rawliteral(" target="_blank">Auth link</a>
+      </p>
+      <p>Here's the authorisation link. It will open a login page for Spotify in a new tab.</p>
+      <p>Once you login, just copy the code parameter from the URL. It should look something like this:</p>
+      <p>http://127.0.0.1:8080/?code=AQCYMmZY1PagU3rt4ji_9h8yGREfBHOZEpqEH1W204caWfeyLA70...</p>
+      <p>You want the part after 'code='!</p>
+      <form action="/auth-code" method="GET">
+        <input name="code" placeholder="Paste Spotify auth code">
+        <button type="submit">Submit</button>
+      </form>
+    </body>
+    </html>
+  )rawliteral";
+
+  server.send(200, "text/html", html);
+}
+
+// ----- GENERAL HELPER FUNCTIONS -----
+void HelperFunctions::setupWifi() {
+    WiFi.begin(ssid, password);
+
+    // attempt to connect to Wifi network (blocking loop, as nothing works without wifi active)
+    while (WiFi.status() != WL_CONNECTED) {
+        Serial.print(".");
+        // wait 1 second for re-trying
+        delay(1000);
+    }
+
+    Serial.print("Connected to ");
+    Serial.println(ssid);
+
+    client.setInsecure(); //skip verification
 }

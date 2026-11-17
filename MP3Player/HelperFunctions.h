@@ -3,10 +3,14 @@
 
 #include <ArduinoJson.h>
 #include <HijelHID_BLEKeyboard.h>
-#include <mbedtls/md.h>     // SHA-256 / message digest
 #include <mbedtls/base64.h> // Base64 encoding and decoding
+#include <mbedtls/md.h>     // SHA-256 / message digest
+#include "SSD1306Wire.h"
 #include <vector>
+#include <WebServer.h>
 #include <WiFiClientSecure.h>
+#include <WiFi.h>
+#include <Wire.h>
 
 class HelperFunctions
 {
@@ -34,17 +38,26 @@ class HelperFunctions
     String codeChallenge = "";
     String codeVerifier = "";
 
-    HijelHID_BLEKeyboard keyboard;
-    WiFiClientSecure client;
+    HijelHID_BLEKeyboard keyboard;  // Bluetooth keyboard
+    WiFiClientSecure client;        // Wifi client
+    WebServer server;               // Create web server
 
+    HelperFunctions();
+
+    // Hardware functions
     void setPullupPins();
     void checkBtnPresses();
     void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
 
+    // Spotify functions
     String generateCodeVerifier(int length);
     std::vector<uint8_t> generateSHA256(String& text);
     String generateSpotifyAuthURL(const String& codeChallenge);
     String encode_base64(std::vector<uint8_t>& data);
+    void handleRoot();
+
+    // General helper functions
+    void setupWifi();
 };
 
 #endif
