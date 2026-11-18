@@ -251,6 +251,53 @@ TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
     // Parse json section
 }
 
+void HelperFunctions::playSpotify()
+{
+    String response = spotifyRequest("api.spotify.com",
+                                     "PUT",
+                                     "/v1/me/player/play");
+
+    // Debug logging (remove)
+    Serial.println("PUT resume play response: ");
+    Serial.println(response);
+    // Debug logging (remove)
+}
+
+String HelperFunctions::spotifyRequest(String host,
+                                       String method,
+                                       String endpoint,
+                                       String body = "",
+                                       String contentType = "application/json")
+{
+    if (!client.connect("api.spotify.com", 443))
+    { // Check connected to spotify
+        Serial.println("Spotify connection failed 443");
+    }
+    // Make request
+    client.println(method + " " + endpoint + " HTTP/1.1");
+    client.println("Host: " + host);
+    client.println("Content-Type: " + contentType);
+    if (host == "api.spotify.com")
+    {
+        client.println("Authorization: Bearer " + accessToken);
+    }
+    client.println("Content-Length: " + String(body.length()));
+    client.println("Connection: close");
+    client.println();
+    client.print(body);
+    // Read & return response
+    String response = "";
+    while (client.connected() || client.available())
+    {
+        if (client.available())
+        {
+            response += client.readString();
+        }
+    }
+    client.stop();
+    return response;
+}
+
 // ----- GENERAL HELPER FUNCTIONS -----
 void HelperFunctions::setupWifi()
 {

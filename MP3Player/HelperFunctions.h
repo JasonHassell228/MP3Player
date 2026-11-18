@@ -60,11 +60,17 @@ public:
   std::vector<uint8_t> generateSHA256(String &text);
   String generateSpotifyAuthURL(const String &codeChallenge);
   String encode_base64(std::vector<uint8_t> &data);
+  String spotifyRequest(String host,
+                        String method,
+                        String endpoint,
+                        String body = "",
+                        String contentType = "application/json");
   void exchangeSpotifyAuthForAccess();
   TrackInfo getSpotifyCurrentPlayingSong();
   void handleRoot();
   void generateCodeVerifier(int length);
   void generateCodeChallenge();
+  void playSpotify();
 
   // General helper functions
   void setupWifi();
