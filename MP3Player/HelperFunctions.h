@@ -14,51 +14,52 @@
 
 class HelperFunctions
 {
-  public:
-    // Button pins
-    const int PLAY_PAUSE_PIN = 18;
-    const int VOL_DOWN_PIN = 5;
-    const int VOL_UP_PIN = 19;
-    static const int numBtnPins = 3;
-    const int ALL_BTN_PINS[numBtnPins] = {
+public:
+  // Button pins
+  const int PLAY_PAUSE_PIN = 18;
+  const int VOL_DOWN_PIN = 5;
+  const int VOL_UP_PIN = 19;
+  static const int numBtnPins = 3;
+  const int ALL_BTN_PINS[numBtnPins] = {
       PLAY_PAUSE_PIN,
       VOL_DOWN_PIN,
-      VOL_UP_PIN
-    };
+      VOL_UP_PIN};
 
-    // Screen pins
-    const int SCREEN_SDA_PIN = 23;
-    const int SCREEN_SCK_PIN = 22;
+  // Screen pins
+  const int SCREEN_SDA_PIN = 23;
+  const int SCREEN_SCK_PIN = 22;
 
-    const char* ssid     =      "";     // your network SSID (name of wifi network)
-    const char* password =      ""; // your network password
-    const char* client_id =     "";
-    const char* spotify_redirect_uri = "http://127.0.0.1:8080";
-    String authorizationCode = "";
-    String codeChallenge = "";
-    String codeVerifier = "";
+  const char *ssid = "";     // your network SSID (name of wifi network)
+  const char *password = ""; // your network password
+  const char *client_id = "";
+  const char *spotify_redirect_uri = "http://127.0.0.1:8080";
+  String authorizationCode = "";
+  String accessToken = "";
+  String codeChallenge = "";
+  String codeVerifier = "";
 
-    HijelHID_BLEKeyboard keyboard;  // Bluetooth keyboard
-    WiFiClientSecure client;        // Wifi client
-    WebServer webServer;            // Create web server
+  HijelHID_BLEKeyboard keyboard; // Bluetooth keyboard
+  WiFiClientSecure client;       // Wifi client
+  WebServer webServer;           // Create web server
 
-    HelperFunctions();
+  HelperFunctions();
 
-    // Hardware functions
-    void setPullupPins();
-    void checkBtnPresses();
-    void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
+  // Hardware functions
+  void setPullupPins();
+  void checkBtnPresses();
+  void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
 
-    // Spotify functions
-    std::vector<uint8_t> generateSHA256(String& text);
-    String generateSpotifyAuthURL(const String& codeChallenge);
-    String encode_base64(std::vector<uint8_t>& data);
-    void handleRoot();
-    void generateCodeVerifier(int length);
-    void generateCodeChallenge();
+  // Spotify functions
+  std::vector<uint8_t> generateSHA256(String &text);
+  String generateSpotifyAuthURL(const String &codeChallenge);
+  String encode_base64(std::vector<uint8_t> &data);
+  String exchangeSpotifyAuthForAccess();
+  void handleRoot();
+  void generateCodeVerifier(int length);
+  void generateCodeChallenge();
 
-    // General helper functions
-    void setupWifi();
+  // General helper functions
+  void setupWifi();
 };
 
 #endif

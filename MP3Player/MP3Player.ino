@@ -58,54 +58,12 @@ void setup() {
     hf.webServer.on("/", HTTP_GET, [&]() {hf.handleRoot();});
     hf.webServer.on("/auth-code", HTTP_GET, [&]() {
         hf.authorizationCode = hf.webServer.arg("code");
-        Serial.println("authorizationCode before: ");
-        Serial.println(hf.authorizationCode);
-        int pos = hf.authorizationCode.indexOf("&ubi");
+        int pos = hf.authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
         if (pos != -1) {
             hf.authorizationCode.remove(pos);
         }
-        Serial.println("authorizationCode after: ");
-        Serial.println(hf.authorizationCode);
 
-        // ----- wip Spotify exchange auth for access code test -----
-        String accessToken = "";
-        String body =
-          "grant_type=authorization_code"
-          "&code=" + hf.authorizationCode +
-          "&redirect_uri=" + String(hf.spotify_redirect_uri) +
-          "&client_id=" + hf.client_id +
-          "&code_verifier=" + hf.codeVerifier;
-
-        hf.client.connect("accounts.spotify.com", 443);
-
-        hf.client.println("POST /api/token HTTP/1.1");
-        hf.client.println("Host: accounts.spotify.com");
-        hf.client.println("Content-Type: application/x-www-form-urlencoded");
-        hf.client.println("Content-Length: " + String(body.length()));
-        hf.client.println("Connection: close");
-        hf.client.println();
-        hf.client.print(body);
-
-        Serial.println("body: ");
-        Serial.println(body);
-        Serial.print("finished printing body: ");
-
-        String response;
-        while (hf.client.connected() || hf.client.available()) {
-            if (hf.client.available()) response += hf.client.readString();
-        }
-
-        Serial.println("response: ");
-        Serial.println(response);
-
-        JsonDocument doc;
-        deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
-        accessToken = doc["access_token"].as<String>();
-
-        Serial.println("FINAL ACCESS TOKEN: ");
-        Serial.println(accessToken);
-        hf.client.stop();
-        // ----- wip Spotify exchange auth for access code test -----
+        String response = hf.exchangeSpotifyAuthForAccess();
 
         // // ----- wip Spotify API test -----
         if (!hf.client.connect("api.spotify.com", 443)) {
@@ -114,7 +72,7 @@ void setup() {
 
         hf.client.println("GET /v1/me/player/currently-playing HTTP/1.1");
         hf.client.println("Host: api.spotify.com");
-        hf.client.println("Authorization: Bearer " + accessToken);
+        hf.client.println("Authorization: Bearer " + hf.accessToken);
         hf.client.println("Connection: close");
         hf.client.println();
 
@@ -127,7 +85,7 @@ void setup() {
         }
         Serial.println("second response: ");
         Serial.println(response);
-
+        JsonDocument doc;
         deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
         String song = doc["item"]["name"].as<String>();
         String artist = doc["item"]["artists"][0]["name"].as<String>();

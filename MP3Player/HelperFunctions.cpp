@@ -2,6 +2,19 @@
 
 HelperFunctions::HelperFunctions() : webServer(80) {} // Initialise web server to port 80
 
+// ----- LOCAL FUNCTIONS -----
+JsonDocument parseResponseJson(String response)
+{
+    JsonDocument doc;
+    deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
+    return doc; // TODO error handling
+}
+
+String getSingleJsonItem(JsonDocument doc, String item)
+{
+    return doc[item].as<String>(); // TODO error handling
+}
+
 // ----- HARDWARE HELPER FUNCTIONS -----
 
 void HelperFunctions::setPullupPins()
@@ -23,7 +36,8 @@ void HelperFunctions::checkBtnPresses()
 // Check if physical btn pressed, if yes press corresponding bluetooth btn
 void HelperFunctions::pressBluetoothBtn(const int pin, uint16_t bluetoothBtn)
 {
-    if (digitalRead(pin) == LOW) {
+    if (digitalRead(pin) == LOW)
+    {
         keyboard.tap(bluetoothBtn, 25, 50);
         keyboard.releaseAll();
     }
@@ -31,61 +45,65 @@ void HelperFunctions::pressBluetoothBtn(const int pin, uint16_t bluetoothBtn)
 
 // ----- SPOTIFY API HELPER FUNCTIONS -----
 
-void HelperFunctions::generateCodeVerifier(int length) {
+void HelperFunctions::generateCodeVerifier(int length)
+{
     String text = "";
     String possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < length; i++)
+    {
         text += possible[random(0, possible.length())];
     }
     codeVerifier = text;
 }
 
-void HelperFunctions::generateCodeChallenge() {
-    generateCodeVerifier(64); // Generate code verifier
+void HelperFunctions::generateCodeChallenge()
+{
+    generateCodeVerifier(64);                       // Generate code verifier
     String codeVerifierCStr = codeVerifier.c_str(); // TODO can we make this one line? It was giving me runtime issues before
     auto codeVerifierHashed = generateSHA256(codeVerifierCStr);
     // Encode code verifier as base64
     std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
-	codeChallenge = encode_base64(data);
+    codeChallenge = encode_base64(data);
 }
 
-std::vector<uint8_t> HelperFunctions::generateSHA256(String& text)
+std::vector<uint8_t> HelperFunctions::generateSHA256(String &text)
 {
-	std::vector<uint8_t> hash(32);
+    std::vector<uint8_t> hash(32);
 
-	mbedtls_md_context_t ctx;
-	mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
+    mbedtls_md_context_t ctx;
+    mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
 
-	mbedtls_md_init(&ctx);
-	mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
-	mbedtls_md_starts(&ctx);
-	mbedtls_md_update(&ctx, (const unsigned char*)text.c_str(), text.length());
-	mbedtls_md_finish(&ctx, hash.data());
-	mbedtls_md_free(&ctx);
+    mbedtls_md_init(&ctx);
+    mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
+    mbedtls_md_starts(&ctx);
+    mbedtls_md_update(&ctx, (const unsigned char *)text.c_str(), text.length());
+    mbedtls_md_finish(&ctx, hash.data());
+    mbedtls_md_free(&ctx);
 
-	return hash;
+    return hash;
 }
 
-String HelperFunctions::encode_base64(std::vector<uint8_t>& data)
+String HelperFunctions::encode_base64(std::vector<uint8_t> &data)
 {
-	size_t outputLength;
-	mbedtls_base64_encode(nullptr, 0, &outputLength, (unsigned char*)data.data(), data.size());
-	std::vector<uint8_t> encoded(outputLength);
-	mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char*)data.data(), data.size());
+    size_t outputLength;
+    mbedtls_base64_encode(nullptr, 0, &outputLength, (unsigned char *)data.data(), data.size());
+    std::vector<uint8_t> encoded(outputLength);
+    mbedtls_base64_encode(encoded.data(), outputLength, &outputLength, (unsigned char *)data.data(), data.size());
 
     // Replace base64 url chars
-    String replaceString = String((char*)encoded.data());
+    String replaceString = String((char *)encoded.data());
     replaceString.replace("+", "-");
     replaceString.replace("/", "_");
     int padding = replaceString.indexOf('=');
-    if (padding != -1) {
+    if (padding != -1)
+    {
         replaceString.remove(padding);
     }
     return replaceString;
 }
 
-String HelperFunctions::generateSpotifyAuthURL(const String& codeChallenge)
+String HelperFunctions::generateSpotifyAuthURL(const String &codeChallenge)
 {
     static const char format[] =
         "https://accounts.spotify.com/authorize?"
@@ -96,20 +114,21 @@ String HelperFunctions::generateSpotifyAuthURL(const String& codeChallenge)
         "&code_challenge=%s"
         "&scope=user-read-currently-playing user-read-playback-state user-modify-playback-state"; // TODO add more perms as needed
     size_t len = snprintf(nullptr, 0, format, client_id,
-                                              spotify_redirect_uri,
-                                              codeChallenge.c_str());
+                          spotify_redirect_uri,
+                          codeChallenge.c_str());
     char url[len + 1];
     snprintf(url, sizeof(url), format, client_id,
-                                       spotify_redirect_uri,
-                                       codeChallenge.c_str());
+             spotify_redirect_uri,
+             codeChallenge.c_str());
     return String(url);
 }
 
 // Main webpage
-void HelperFunctions::handleRoot() {
-  String authLink = generateSpotifyAuthURL(codeChallenge);
+void HelperFunctions::handleRoot()
+{
+    String authLink = generateSpotifyAuthURL(codeChallenge);
 
-  String html = R"rawliteral(
+    String html = R"rawliteral(
     <!DOCTYPE html>
     <html>
     <head>
@@ -120,7 +139,8 @@ void HelperFunctions::handleRoot() {
       <h1>Spotify authentication</h1>
       <p>
         Spotify auth link:
-        <a href=")rawliteral" + authLink + R"rawliteral(" target="_blank">Auth link</a>
+        <a href=")rawliteral" +
+                  authLink + R"rawliteral(" target="_blank">Auth link</a>
       </p>
       <p>Here's the authorisation link. It will open a login page for Spotify in a new tab.</p>
       <p>Once you login, just copy the code parameter from the URL. It should look something like this:</p>
@@ -134,15 +154,66 @@ void HelperFunctions::handleRoot() {
     </html>
   )rawliteral";
 
-  webServer.send(200, "text/html", html);
+    webServer.send(200, "text/html", html);
+}
+
+String HelperFunctions::exchangeSpotifyAuthForAccess()
+{
+    // ----- wip Spotify exchange auth for access code test -----
+    // POST request section
+    String body =
+        "grant_type=authorization_code"
+        "&code=" +
+        authorizationCode +
+        "&redirect_uri=" + String(spotify_redirect_uri) +
+        "&client_id=" + client_id +
+        "&code_verifier=" + codeVerifier;
+
+    client.connect("accounts.spotify.com", 443);
+
+    client.println("POST /api/token HTTP/1.1");
+    client.println("Host: accounts.spotify.com");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Content-Length: " + String(body.length()));
+    client.println("Connection: close");
+    client.println();
+    client.print(body);
+
+    Serial.println("body: ");
+    Serial.println(body);
+    Serial.print("finished printing body: ");
+
+    String response;
+    while (client.connected() || client.available())
+    {
+        if (client.available())
+            response += client.readString();
+    }
+    client.stop();
+
+    Serial.println("response: ");
+    Serial.println(response);
+    // POST request section
+
+    // reading response json section
+    auto doc = parseResponseJson(response);
+    accessToken = getSingleJsonItem(doc, "access_token");
+    Serial.println("FINAL ACCESS TOKEN: ");
+    Serial.println(accessToken);
+    // reading response json section
+
+    return response;
+    // ----- wip Spotify exchange auth for access code test -----
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----
-void HelperFunctions::setupWifi() {
+void HelperFunctions::setupWifi()
+{
     WiFi.begin(ssid, password);
 
     // attempt to connect to Wifi network (blocking loop, as nothing works without wifi active)
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED)
+    {
         Serial.print(".");
         // wait 1 second for re-trying
         delay(1000);
@@ -151,5 +222,5 @@ void HelperFunctions::setupWifi() {
     Serial.print("Connected to ");
     Serial.println(ssid);
 
-    client.setInsecure(); //skip verification
+    client.setInsecure(); // skip verification
 }
