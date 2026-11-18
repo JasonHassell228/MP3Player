@@ -63,8 +63,9 @@ void setup() {
             hf.authorizationCode.remove(pos);
         }
 
-        String response = hf.exchangeSpotifyAuthForAccess();
+        hf.exchangeSpotifyAuthForAccess();
 
+        // TODO refactor into helper funcs
         // // ----- wip Spotify API test -----
         if (!hf.client.connect("api.spotify.com", 443)) {
           Serial.println("Spotify connection failed 443");
@@ -76,7 +77,7 @@ void setup() {
         hf.client.println("Connection: close");
         hf.client.println();
 
-        response = "";
+        String response = "";
 
         while (hf.client.connected() || hf.client.available()) {
             if (hf.client.available()) {

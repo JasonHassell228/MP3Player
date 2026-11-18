@@ -7,7 +7,7 @@ JsonDocument parseResponseJson(String response)
 {
     JsonDocument doc;
     deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
-    return doc; // TODO error handling
+    return doc;                                                             // TODO error handling
 }
 
 String getSingleJsonItem(JsonDocument doc, String item)
@@ -157,9 +157,8 @@ void HelperFunctions::handleRoot()
     webServer.send(200, "text/html", html);
 }
 
-String HelperFunctions::exchangeSpotifyAuthForAccess()
+void HelperFunctions::exchangeSpotifyAuthForAccess()
 {
-    // ----- wip Spotify exchange auth for access code test -----
     // POST request section
     String body =
         "grant_type=authorization_code"
@@ -169,7 +168,10 @@ String HelperFunctions::exchangeSpotifyAuthForAccess()
         "&client_id=" + client_id +
         "&code_verifier=" + codeVerifier;
 
-    client.connect("accounts.spotify.com", 443);
+    if (!client.connect("api.spotify.com", 443))
+    {
+        Serial.println("Spotify connection failed 443");
+    }
 
     client.println("POST /api/token HTTP/1.1");
     client.println("Host: accounts.spotify.com");
@@ -179,31 +181,34 @@ String HelperFunctions::exchangeSpotifyAuthForAccess()
     client.println();
     client.print(body);
 
+    // Debug logging (remove)
     Serial.println("body: ");
     Serial.println(body);
     Serial.print("finished printing body: ");
+    // Debug logging (remove)
 
     String response;
     while (client.connected() || client.available())
-    {
+    { // TODO is this blocking main loop?
         if (client.available())
             response += client.readString();
     }
     client.stop();
 
+    // Debug logging (remove)
     Serial.println("response: ");
     Serial.println(response);
+    // Debug logging (remove)
     // POST request section
 
     // reading response json section
     auto doc = parseResponseJson(response);
     accessToken = getSingleJsonItem(doc, "access_token");
+    // Debug logging (remove)
     Serial.println("FINAL ACCESS TOKEN: ");
     Serial.println(accessToken);
+    // Debug logging (remove)
     // reading response json section
-
-    return response;
-    // ----- wip Spotify exchange auth for access code test -----
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----

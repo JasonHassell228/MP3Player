@@ -53,7 +53,7 @@ public:
   std::vector<uint8_t> generateSHA256(String &text);
   String generateSpotifyAuthURL(const String &codeChallenge);
   String encode_base64(std::vector<uint8_t> &data);
-  String exchangeSpotifyAuthForAccess();
+  void exchangeSpotifyAuthForAccess();
   void handleRoot();
   void generateCodeVerifier(int length);
   void generateCodeChallenge();
