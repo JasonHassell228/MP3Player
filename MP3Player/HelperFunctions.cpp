@@ -10,9 +10,10 @@ JsonDocument parseResponseJson(String response)
     return doc;                                                             // TODO error handling
 }
 
-String getSingleJsonItem(JsonDocument doc, String item)
+template <typename T>
+T getSingleJsonItem(JsonDocument &doc, String item)
 {
-    return doc[item].as<String>(); // TODO error handling
+    return doc[item].as<T>(); // TODO error handling for no item found
 }
 
 // ----- HARDWARE HELPER FUNCTIONS -----
@@ -160,7 +161,6 @@ void HelperFunctions::handleRoot()
 
 void HelperFunctions::exchangeSpotifyAuthForAccess()
 {
-    // POST request section
     String body =
         "grant_type=authorization_code"
         "&code=" +
@@ -168,43 +168,23 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
         "&redirect_uri=" + String(spotify_redirect_uri) +
         "&client_id=" + client_id +
         "&code_verifier=" + codeVerifier;
-
-    if (!client.connect("api.spotify.com", 443))
-    {
-        Serial.println("Spotify connection failed 443");
-    }
-
-    client.println("POST /api/token HTTP/1.1");
-    client.println("Host: accounts.spotify.com");
-    client.println("Content-Type: application/x-www-form-urlencoded");
-    client.println("Content-Length: " + String(body.length()));
-    client.println("Connection: close");
-    client.println();
-    client.print(body);
+    String response = spotifyRequest("accounts.spotify.com",
+                                     "POST",
+                                     "/api/token",
+                                     body,
+                                     "application/x-www-form-urlencoded");
 
     // Debug logging (remove)
-    Serial.println("body: ");
+    Serial.println("Auth POST body: ");
     Serial.println(body);
     Serial.print("finished printing body: ");
-    // Debug logging (remove)
-
-    String response;
-    while (client.connected() || client.available())
-    { // TODO is this blocking main loop?
-        if (client.available())
-            response += client.readString();
-    }
-    client.stop();
-
-    // Debug logging (remove)
     Serial.println("Auth exchange response: ");
     Serial.println(response);
     // Debug logging (remove)
-    // POST request section
 
     // reading response json section
     auto doc = parseResponseJson(response);
-    accessToken = getSingleJsonItem(doc, "access_token");
+    accessToken = getSingleJsonItem<String>(doc, "access_token");
     // Debug logging (remove)
     Serial.println("FINAL ACCESS TOKEN: ");
     Serial.println(accessToken);
@@ -214,28 +194,9 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
 
 TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
 {
-    if (!client.connect("api.spotify.com", 443))
-    {
-        Serial.println("Spotify connection failed 443");
-    }
-
-    // GET request section
-    client.println("GET /v1/me/player/currently-playing HTTP/1.1");
-    client.println("Host: api.spotify.com");
-    client.println("Authorization: Bearer " + accessToken);
-    client.println("Connection: close");
-    client.println();
-
-    String response = "";
-    while (client.connected() || client.available())
-    {
-        if (client.available())
-        {
-            response += client.readString();
-        }
-    }
-    client.stop();
-    // GET request section
+    String response = spotifyRequest("api.spotify.com",
+                                     "GET",
+                                     "/v1/me/player/currently-playing");
 
     // Debug logging (remove)
     Serial.println("GET current playing response: ");
@@ -244,7 +205,7 @@ TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
 
     // Parse json section
     auto doc = parseResponseJson(response);
-    isPlaying = getSingleJsonItem("is_playing"); // Set isPlaying for future use
+    isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
     return {
         doc["item"]["name"].as<String>(),
         doc["item"]["artists"][0]["name"].as<String>()};
@@ -266,8 +227,8 @@ void HelperFunctions::playSpotify()
 String HelperFunctions::spotifyRequest(String host,
                                        String method,
                                        String endpoint,
-                                       String body = "",
-                                       String contentType = "application/json")
+                                       String body,
+                                       String contentType)
 {
     if (!client.connect("api.spotify.com", 443))
     { // Check connected to spotify
@@ -288,7 +249,7 @@ String HelperFunctions::spotifyRequest(String host,
     // Read & return response
     String response = "";
     while (client.connected() || client.available())
-    {
+    { // TODO is this blocking main loop?
         if (client.available())
         {
             response += client.readString();

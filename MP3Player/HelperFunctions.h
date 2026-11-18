@@ -51,6 +51,8 @@ public:
 
   HelperFunctions();
 
+  // TODO: Go through all function defs and use pass by reference wherever possible instead of entire object
+
   // Hardware functions
   void setPullupPins();
   void checkBtnPresses();
