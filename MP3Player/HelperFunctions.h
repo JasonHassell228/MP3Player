@@ -43,6 +43,7 @@ public:
   String accessToken = "";
   String codeChallenge = "";
   String codeVerifier = "";
+  bool isPlaying = false;
 
   HijelHID_BLEKeyboard keyboard; // Bluetooth keyboard
   WiFiClientSecure client;       // Wifi client

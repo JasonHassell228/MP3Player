@@ -28,6 +28,7 @@ void HelperFunctions::setPullupPins()
 // Checks all physical button presses and runs the corresponding action
 void HelperFunctions::checkBtnPresses()
 {
+    // TODO: Btns control spotify API by default, add BT mode later
     pressBluetoothBtn(VOL_UP_PIN, MEDIA_VOLUME_UP);
     pressBluetoothBtn(VOL_DOWN_PIN, MEDIA_VOLUME_DOWN);
     pressBluetoothBtn(PLAY_PAUSE_PIN, MEDIA_PLAY_PAUSE);
@@ -243,6 +244,7 @@ TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
 
     // Parse json section
     auto doc = parseResponseJson(response);
+    isPlaying = getSingleJsonItem("is_playing"); // Set isPlaying for future use
     return {
         doc["item"]["name"].as<String>(),
         doc["item"]["artists"][0]["name"].as<String>()};
