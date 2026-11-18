@@ -57,45 +57,21 @@ void setup() {
     // Configure routes
     hf.webServer.on("/", HTTP_GET, [&]() {hf.handleRoot();});
     hf.webServer.on("/auth-code", HTTP_GET, [&]() {
-        hf.authorizationCode = hf.webServer.arg("code");
+        hf.authorizationCode = hf.webServer.arg("code"); // Get auth code pasted by user (after successful login)
         int pos = hf.authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
         if (pos != -1) {
             hf.authorizationCode.remove(pos);
         }
 
-        hf.exchangeSpotifyAuthForAccess();
+        hf.exchangeSpotifyAuthForAccess(); // Use auth code to get access code
 
-        // TODO refactor into helper funcs
-        // // ----- wip Spotify API test -----
-        if (!hf.client.connect("api.spotify.com", 443)) {
-          Serial.println("Spotify connection failed 443");
-        }
-
-        hf.client.println("GET /v1/me/player/currently-playing HTTP/1.1");
-        hf.client.println("Host: api.spotify.com");
-        hf.client.println("Authorization: Bearer " + hf.accessToken);
-        hf.client.println("Connection: close");
-        hf.client.println();
-
-        String response = "";
-
-        while (hf.client.connected() || hf.client.available()) {
-            if (hf.client.available()) {
-                response += hf.client.readString();
-            }
-        }
-        Serial.println("second response: ");
-        Serial.println(response);
-        JsonDocument doc;
-        deserializeJson(doc, response.substring(response.indexOf("\r\n\r\n"))); // Find HTTP header separator
-        String song = doc["item"]["name"].as<String>();
-        String artist = doc["item"]["artists"][0]["name"].as<String>();
-
-        Serial.println(song);
-        Serial.println(artist);
-
-        hf.client.stop();
-        // ----- wip Spotify API test -----
+        auto trackInfo = hf.getSpotifyCurrentPlayingSong();
+        // Debug logging (remove)
+        Serial.print("Song: ");
+        Serial.println(trackInfo.songName);
+        Serial.print("Artist: ");
+        Serial.println(trackInfo.artist);
+        // Debug logging (remove)
     });
 
     // Start server

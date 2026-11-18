@@ -12,6 +12,12 @@
 #include <WiFi.h>
 #include <Wire.h>
 
+struct TrackInfo
+{
+  String songName;
+  String artist;
+};
+
 class HelperFunctions
 {
 public:
@@ -54,6 +60,7 @@ public:
   String generateSpotifyAuthURL(const String &codeChallenge);
   String encode_base64(std::vector<uint8_t> &data);
   void exchangeSpotifyAuthForAccess();
+  TrackInfo getSpotifyCurrentPlayingSong();
   void handleRoot();
   void generateCodeVerifier(int length);
   void generateCodeChallenge();

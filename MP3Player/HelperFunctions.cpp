@@ -196,7 +196,7 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
     client.stop();
 
     // Debug logging (remove)
-    Serial.println("response: ");
+    Serial.println("Auth exchange response: ");
     Serial.println(response);
     // Debug logging (remove)
     // POST request section
@@ -209,6 +209,44 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
     Serial.println(accessToken);
     // Debug logging (remove)
     // reading response json section
+}
+
+TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
+{
+    if (!client.connect("api.spotify.com", 443))
+    {
+        Serial.println("Spotify connection failed 443");
+    }
+
+    // GET request section
+    client.println("GET /v1/me/player/currently-playing HTTP/1.1");
+    client.println("Host: api.spotify.com");
+    client.println("Authorization: Bearer " + accessToken);
+    client.println("Connection: close");
+    client.println();
+
+    String response = "";
+    while (client.connected() || client.available())
+    {
+        if (client.available())
+        {
+            response += client.readString();
+        }
+    }
+    client.stop();
+    // GET request section
+
+    // Debug logging (remove)
+    Serial.println("GET current playing response: ");
+    Serial.println(response);
+    // Debug logging (remove)
+
+    // Parse json section
+    auto doc = parseResponseJson(response);
+    return {
+        doc["item"]["name"].as<String>(),
+        doc["item"]["artists"][0]["name"].as<String>()};
+    // Parse json section
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----
