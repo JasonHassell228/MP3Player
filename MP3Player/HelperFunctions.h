@@ -56,26 +56,32 @@ public:
   // Hardware functions
   void setPullupPins();
   void checkBtnPresses();
-  void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
 
   // Spotify functions
-  std::vector<uint8_t> generateSHA256(String &text);
-  String generateSpotifyAuthURL(const String &codeChallenge);
-  String encode_base64(std::vector<uint8_t> &data);
-  String spotifyRequest(String host,
-                        String method,
-                        String endpoint,
-                        String body = "",
-                        String contentType = "application/json");
   void exchangeSpotifyAuthForAccess();
   TrackInfo getSpotifyCurrentPlayingSong();
   void handleRoot();
-  void generateCodeVerifier(int length);
   void generateCodeChallenge();
   void playSpotify();
 
   // General helper functions
   void setupWifi();
+  void setupWebServer();
+
+private:
+  // Hardware functions
+  void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
+
+  // Spotify functions
+  String encode_base64(std::vector<uint8_t> &data);
+  std::vector<uint8_t> generateSHA256(String &text);
+  void generateCodeVerifier(int length);
+  String generateSpotifyAuthURL(const String &codeChallenge);
+  String spotifyRequest(String host,
+                        String method,
+                        String endpoint,
+                        String body = "",
+                        String contentType = "application/json");
 };
 
 #endif

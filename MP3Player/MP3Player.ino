@@ -33,52 +33,11 @@ void setup() {
     hf.keyboard.begin();
 
     initializeDisplay(); // 128x32 pixel display setup
-
-    // Wifi setup
     hf.setupWifi(); // Will block until complete
-
-    /* todo (https://developer.spotify.com/documentation/web-api/tutorials/code-pkce-flow): 
-    [x] generate code verifier
-    [x] generate code challenge (SHA 256 hash) (+ base64 encode?)
-    [x] Host web server on esp32 to display auth link to user
-    [x] Generate auth link, serve on esp32 web page, get user to click
-    [x] Copy auth code from above into box on webpage, use to auth this spotify sesh
-    [x] Use authCode to make spotify API requests!
-    [ ] Cleanup & refactor!
-    */
     Serial.println();
 
     hf.generateCodeChallenge(); // Generate and set verifier & challenge
-
-    // ----- wip local webserver test -----
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
-
-    // Configure routes
-    hf.webServer.on("/", HTTP_GET, [&]() {hf.handleRoot();});
-    hf.webServer.on("/auth-code", HTTP_GET, [&]() {
-        hf.authorizationCode = hf.webServer.arg("code"); // Get auth code pasted by user (after successful login)
-        int pos = hf.authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
-        if (pos != -1) {
-            hf.authorizationCode.remove(pos);
-        }
-
-        hf.exchangeSpotifyAuthForAccess(); // Use auth code to get access code
-
-        auto trackInfo = hf.getSpotifyCurrentPlayingSong();
-        // Debug logging (remove)
-        Serial.print("Song: ");
-        Serial.println(trackInfo.songName);
-        Serial.print("Artist: ");
-        Serial.println(trackInfo.artist);
-        // Debug logging (remove)
-    });
-
-    // Start server
-    hf.webServer.begin();
-
-    Serial.println("Web server started");
-    // ----- wip local webserver test -----
+    hf.setupWebServer();
 }
 
 void loop() {

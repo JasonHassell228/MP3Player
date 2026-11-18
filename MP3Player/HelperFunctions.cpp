@@ -277,3 +277,38 @@ void HelperFunctions::setupWifi()
 
     client.setInsecure(); // skip verification
 }
+
+// Run a local webserver for the user to login to spotify easily
+// TODO: Need to display local IP on screen @ startup instead of serial print
+void HelperFunctions::setupWebServer()
+{
+    // ----- wip local webserver test -----
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    // Configure local webserver routes
+    webServer.on("/", HTTP_GET, [&]() {handleRoot();});
+    webServer.on("/auth-code", HTTP_GET, [&]() {
+        authorizationCode = webServer.arg("code"); // Get auth code pasted by user (after successful login)
+        int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
+        if (pos != -1) {
+            authorizationCode.remove(pos);
+        }
+
+        exchangeSpotifyAuthForAccess(); // Use auth code to get access code
+
+        auto trackInfo = getSpotifyCurrentPlayingSong();
+        // Debug logging (remove)
+        Serial.print("Song: ");
+        Serial.println(trackInfo.songName);
+        Serial.print("Artist: ");
+        Serial.println(trackInfo.artist);
+        // Debug logging (remove)
+    });
+
+    // Start server
+    webServer.begin();
+
+    Serial.println("Web server started");
+    // ----- wip local webserver test -----
+}
