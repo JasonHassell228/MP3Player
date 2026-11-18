@@ -50,11 +50,12 @@ class HelperFunctions
     void pressBluetoothBtn(const int pin, uint16_t bluetoothBtn);
 
     // Spotify functions
-    String generateCodeVerifier(int length);
     std::vector<uint8_t> generateSHA256(String& text);
     String generateSpotifyAuthURL(const String& codeChallenge);
     String encode_base64(std::vector<uint8_t>& data);
     void handleRoot();
+    void generateCodeVerifier(int length);
+    void generateCodeChallenge();
 
     // General helper functions
     void setupWifi();

@@ -47,13 +47,8 @@ void setup() {
     [ ] Cleanup & refactor!
     */
     Serial.println();
-    // Generate code verifier
-    hf.codeVerifier = hf.generateCodeVerifier(64);
-    String codeVerifierCStr = hf.codeVerifier.c_str();
-    auto codeVerifierHashed = hf.generateSHA256(codeVerifierCStr);
-    // Encode code verifier as base64
-    std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
-	  hf.codeChallenge = hf.encode_base64(data);
+
+    hf.generateCodeChallenge(); // Generate and set verifier & challenge
 
     // ----- wip local webserver test -----
     Serial.print("IP address: ");

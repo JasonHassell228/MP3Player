@@ -31,14 +31,23 @@ void HelperFunctions::pressBluetoothBtn(const int pin, uint16_t bluetoothBtn)
 
 // ----- SPOTIFY API HELPER FUNCTIONS -----
 
-String HelperFunctions::generateCodeVerifier(int length) {
+void HelperFunctions::generateCodeVerifier(int length) {
     String text = "";
     String possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     for (int i = 0; i < length; i++) {
         text += possible[random(0, possible.length())];
     }
-    return text;
+    codeVerifier = text;
+}
+
+void HelperFunctions::generateCodeChallenge() {
+    generateCodeVerifier(64); // Generate code verifier
+    String codeVerifierCStr = codeVerifier.c_str(); // TODO can we make this one line? It was giving me runtime issues before
+    auto codeVerifierHashed = generateSHA256(codeVerifierCStr);
+    // Encode code verifier as base64
+    std::vector<uint8_t> data(codeVerifierHashed.begin(), codeVerifierHashed.end());
+	codeChallenge = encode_base64(data);
 }
 
 std::vector<uint8_t> HelperFunctions::generateSHA256(String& text)
