@@ -279,10 +279,9 @@ void HelperFunctions::setupWifi()
 }
 
 // Run a local webserver for the user to login to spotify easily
-// TODO: Need to display local IP on screen @ startup instead of serial print
 void HelperFunctions::setupWebServer()
 {
-    // ----- wip local webserver test -----
+    // TODO: Need to display local IP on screen @ startup instead of serial print
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 
@@ -297,6 +296,7 @@ void HelperFunctions::setupWebServer()
 
         exchangeSpotifyAuthForAccess(); // Use auth code to get access code
 
+        // TODO remove get song from web server setup, move to main loop
         auto trackInfo = getSpotifyCurrentPlayingSong();
         // Debug logging (remove)
         Serial.print("Song: ");
@@ -310,5 +310,4 @@ void HelperFunctions::setupWebServer()
     webServer.begin();
 
     Serial.println("Web server started");
-    // ----- wip local webserver test -----
 }

@@ -49,8 +49,17 @@ void loop() {
     //     }
     //     return;
     // }
-    hf.checkBtnPresses();
+    hf.checkBtnPresses(); // TODO: Run volume, play/pause etc on btn presses
     hf.webServer.handleClient();
+
+    // TODO: Use millis technique above to run getSpotifyCurrentPlayingSong every second or so
+    // TODO: UI to display:
+    // [ ] Current playing song, & artist (smaller, below song)
+    // [ ] ^^ millis technique to display scrolling text for song name
+    // [ ] ^^ millis technique to show little gif/animation when song is playing
+    // [ ] ^^ millis technique to show current track progress bar
+    // [ ] Wifi enabled/disabled symbol in header
+    // [ ] Display local web server IP at startup on screen instead of serial print
 
     delay(50);
 }
