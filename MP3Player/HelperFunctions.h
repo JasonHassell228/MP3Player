@@ -40,7 +40,7 @@ class HelperFunctions
 
     HijelHID_BLEKeyboard keyboard;  // Bluetooth keyboard
     WiFiClientSecure client;        // Wifi client
-    WebServer server;               // Create web server
+    WebServer webServer;            // Create web server
 
     HelperFunctions();
 

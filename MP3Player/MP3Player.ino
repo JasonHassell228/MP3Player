@@ -55,9 +55,9 @@ void setup() {
     Serial.println(WiFi.localIP());
 
     // Configure routes
-    hf.server.on("/", HTTP_GET, [&]() {hf.handleRoot();});
-    hf.server.on("/auth-code", HTTP_GET, [&]() {
-        hf.authorizationCode = hf.server.arg("code");
+    hf.webServer.on("/", HTTP_GET, [&]() {hf.handleRoot();});
+    hf.webServer.on("/auth-code", HTTP_GET, [&]() {
+        hf.authorizationCode = hf.webServer.arg("code");
         Serial.println("authorizationCode before: ");
         Serial.println(hf.authorizationCode);
         int pos = hf.authorizationCode.indexOf("&ubi");
@@ -140,7 +140,7 @@ void setup() {
     });
 
     // Start server
-    hf.server.begin();
+    hf.webServer.begin();
 
     Serial.println("Web server started");
     // ----- wip local webserver test -----
@@ -156,7 +156,7 @@ void loop() {
     //     return;
     // }
     hf.checkBtnPresses();
-    hf.server.handleClient();
+    hf.webServer.handleClient();
 
     delay(50);
 }

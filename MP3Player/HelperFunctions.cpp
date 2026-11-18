@@ -1,6 +1,6 @@
 #include "HelperFunctions.h"
 
-HelperFunctions::HelperFunctions() : server(80) {} // Initialise web server to port 80
+HelperFunctions::HelperFunctions() : webServer(80) {} // Initialise web server to port 80
 
 // ----- HARDWARE HELPER FUNCTIONS -----
 
@@ -134,7 +134,7 @@ void HelperFunctions::handleRoot() {
     </html>
   )rawliteral";
 
-  server.send(200, "text/html", html);
+  webServer.send(200, "text/html", html);
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----
