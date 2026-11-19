@@ -5,19 +5,22 @@ HelperFunctions hf;
 
 SSD1306Wire display(0x3c, hf.SCREEN_SDA_PIN, hf.SCREEN_SCK_PIN, GEOMETRY_128_32);
 
+unsigned long lastScrollUIText = 0;
+int scrollIndexUIX = 128;
+int screenWidth = 128;
+
 void initializeDisplay()
 {
     // Setup
     display.init();
     display.flipScreenVertically();
-    display.setFont(ArialMT_Plain_16);
+    display.setFont(Monospaced_plain_8);
     display.clear();
     display.setTextAlignment(TEXT_ALIGN_LEFT);
 
     // Draw welcome text
-    display.drawString(0, 0, "No song?");
-    display.setTextAlignment(TEXT_ALIGN_CENTER);
-    display.drawString(64, 15, ":(");
+    display.drawString(0, 10, "No song? No song? No song?");
+    display.drawString(0, 20, ":(");
     // write the buffer to the display
     display.display();
 }
@@ -41,20 +44,31 @@ void setup() {
 }
 
 void loop() {
-    // if (!keyboard.isPaired()) {
-    //     static unsigned long lastPrint = 0;
-    //     if (millis() - lastPrint > 3000) {
-    //         Serial.println("Waiting for connection...");
-    //         lastPrint = millis();
-    //     }
-    //     return;
-    // }
+    auto currentTime = millis();
+    String testText = "test text testy testy test text TEST TEST TESTY TESTY TEST TESTYYYYYYYYYYYYYYYYY";
+    auto totalWidth = display.getStringWidth(testText);
+    if (totalWidth > screenWidth) {
+        if ((currentTime - lastScrollUIText) >= 30) {
+            lastScrollUIText = currentTime;
+            display.clear(); // TODO clear with black rectangle to save energy & preserve header?
+            display.drawString(scrollIndexUIX, 10, testText);
+            display.display();
+            scrollIndexUIX--;
+            if (scrollIndexUIX < (-totalWidth + screenWidth - 20)) {
+                delay(3000); // TODO BLOCKING - set new millis time instead
+                scrollIndexUIX = screenWidth;
+            }
+        }
+    }
+    // ----- wip UI scroll testing
+
     hf.checkBtnPresses(); // TODO: Run volume, play/pause etc on btn presses
     hf.webServer.handleClient();
 
+    // TODO: getSpotifyCurrentPlayingSong needs to handle when no song playing
     // TODO: Use millis technique above to run getSpotifyCurrentPlayingSong every second or so
     // TODO: UI to display:
-    // [ ] Current playing song, & artist (smaller, below song)
+    // [ ] Current playing song, & artist (smaller, below song) 
     // [ ] ^^ millis technique to display scrolling text for song name
     // [ ] ^^ millis technique to show little gif/animation when song is playing
     // [ ] ^^ millis technique to show current track progress bar
