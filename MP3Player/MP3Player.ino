@@ -35,11 +35,12 @@ void loop() {
     hf.webServer.handleClient();
 
     // TODO test code remove
+    auto currentlyPlaying = hf.getSpotifyCurrentPlayingSong();
     Serial.println("GET SONG TEST: ");
     Serial.print("Song: ");
-    Serial.println(hf.getSpotifyCurrentPlayingSong().songName);
+    Serial.println(currentlyPlaying.songName);
     Serial.print("Artist: ");
-    Serial.println(hf.getSpotifyCurrentPlayingSong().artist);
+    Serial.println(currentlyPlaying.artist);
     delay(500);
     // TODO test code remove
     

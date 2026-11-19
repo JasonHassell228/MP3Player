@@ -1,6 +1,6 @@
 #include "HelperFunctions.h"
 
-HelperFunctions::HelperFunctions() : webServer(80), // Initialise web server to port 80
+HelperFunctions::HelperFunctions() : webServer(80),                                                 // Initialise web server to port 80
                                      display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32) // Init UI object
 {
 }
@@ -354,27 +354,18 @@ void HelperFunctions::setupWebServer()
                  { handleRoot(); });
     webServer.on("/auth-code", HTTP_GET, [&]()
                  {
-                     authorizationCode = webServer.arg("code");   // Get auth code pasted by user (after successful login)
-                     int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
-                     if (pos != -1)
-                     {
-                         authorizationCode.remove(pos);
-                     }
+                    if (accessCode == "")
+                    { // Should only run on the first time
+                        authorizationCode = webServer.arg("code");   // Get auth code pasted by user (after successful login)
+                        int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
+                        if (pos != -1)
+                        {
+                            authorizationCode.remove(pos);
+                        }
 
-                     exchangeSpotifyAuthForAccess(); // Use auth code to get access code
-
-                     // TODO remove get song from web server setup, move to main loop
-                     auto trackInfo = getSpotifyCurrentPlayingSong();
-                     // Debug logging (remove)
-                     Serial.print("Song: ");
-                     Serial.println(trackInfo.songName);
-                     Serial.print("Artist: ");
-                     Serial.println(trackInfo.artist);
-                     // Debug logging (remove)
-                 });
-
+                        exchangeSpotifyAuthForAccess(); // Use auth code to get access code
+                    } });
     // Start server
     webServer.begin();
-
     Serial.println("Web server started");
 }
