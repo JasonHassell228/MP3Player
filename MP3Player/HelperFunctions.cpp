@@ -354,7 +354,7 @@ void HelperFunctions::setupWebServer()
                  { handleRoot(); });
     webServer.on("/auth-code", HTTP_GET, [&]()
                  {
-                    if (accessCode == "")
+                    if (accessToken == "")
                     { // Should only run on the first time
                         authorizationCode = webServer.arg("code");   // Get auth code pasted by user (after successful login)
                         int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
