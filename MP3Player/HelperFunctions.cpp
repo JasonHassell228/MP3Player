@@ -1,6 +1,9 @@
 #include "HelperFunctions.h"
 
-HelperFunctions::HelperFunctions() : webServer(80) {} // Initialise web server to port 80
+HelperFunctions::HelperFunctions() : webServer(80), // Initialise web server to port 80
+                                     display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32) // Init UI object
+{
+}
 
 // ----- LOCAL FUNCTIONS -----
 JsonDocument parseResponseJson(String response)
@@ -14,6 +17,11 @@ template <typename T>
 T getSingleJsonItem(JsonDocument &doc, String item)
 {
     return doc[item].as<T>(); // TODO error handling for no item found
+}
+
+bool checkSingleJsonItemExists(JsonDocument &doc, String item)
+{
+    return !doc[item].isNull();
 }
 
 // ----- HARDWARE HELPER FUNCTIONS -----
@@ -203,13 +211,21 @@ TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
     Serial.println(response);
     // Debug logging (remove)
 
-    // Parse json section
     auto doc = parseResponseJson(response);
-    isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
-    return {
-        doc["item"]["name"].as<String>(),
-        doc["item"]["artists"][0]["name"].as<String>()};
-    // Parse json section
+    if (checkSingleJsonItemExists(doc, "is_playing"))
+    {
+        // Parse json section
+        isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
+        return {
+            doc["item"]["name"].as<String>(),
+            doc["item"]["artists"][0]["name"].as<String>()};
+        // Parse json section
+    }
+    else
+    {
+        isPlaying = false; // Empty return means playback stopped
+        return {"", ""};
+    }
 }
 
 void HelperFunctions::playSpotify()
@@ -259,6 +275,54 @@ String HelperFunctions::spotifyRequest(String host,
     return response;
 }
 
+// ----- UI HELPER FUNCTIONS -----
+void HelperFunctions::initializeDisplay()
+{
+    // Setup
+    display.init();
+    display.flipScreenVertically();
+    display.setFont(Monospaced_plain_8);
+    display.clear();
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+
+    // Draw welcome text
+    display.drawString(0, 10, "No song? No song? No song?");
+    display.drawString(0, 20, ":(");
+    // write the buffer to the display
+    display.display();
+}
+
+// Draw text with scrolling functionality (MUST HANDLE CLEAR & DISPLAY OUTSIDE THIS FUNC)
+void HelperFunctions::drawTextWithScroll(String &text, int yPos, unsigned long &currentTime)
+{
+    auto totalWidth = display.getStringWidth(text);
+    if (totalWidth > screenWidth)
+    {
+        if (finishedScroll)
+        {
+            if (currentTime > scrollFinishTimeUIText)
+            {
+                scrollIndexUIX = screenWidth; // Reset scroll
+                finishedScroll = false;
+            }
+        }
+        else
+        {
+            if ((currentTime - lastScrollTimeUIText) >= 30)
+            {
+                lastScrollTimeUIText = currentTime;
+                display.drawString(scrollIndexUIX, yPos, text);
+                scrollIndexUIX--;
+                if (scrollIndexUIX < (-totalWidth + screenWidth - 10))
+                {
+                    scrollFinishTimeUIText = currentTime + 3000; // 3s delay after scroll finish
+                    finishedScroll = true;
+                }
+            }
+        }
+    }
+}
+
 // ----- GENERAL HELPER FUNCTIONS -----
 void HelperFunctions::setupWifi()
 {
@@ -286,25 +350,28 @@ void HelperFunctions::setupWebServer()
     Serial.println(WiFi.localIP());
 
     // Configure local webserver routes
-    webServer.on("/", HTTP_GET, [&]() {handleRoot();});
-    webServer.on("/auth-code", HTTP_GET, [&]() {
-        authorizationCode = webServer.arg("code"); // Get auth code pasted by user (after successful login)
-        int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
-        if (pos != -1) {
-            authorizationCode.remove(pos);
-        }
+    webServer.on("/", HTTP_GET, [&]()
+                 { handleRoot(); });
+    webServer.on("/auth-code", HTTP_GET, [&]()
+                 {
+                     authorizationCode = webServer.arg("code");   // Get auth code pasted by user (after successful login)
+                     int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
+                     if (pos != -1)
+                     {
+                         authorizationCode.remove(pos);
+                     }
 
-        exchangeSpotifyAuthForAccess(); // Use auth code to get access code
+                     exchangeSpotifyAuthForAccess(); // Use auth code to get access code
 
-        // TODO remove get song from web server setup, move to main loop
-        auto trackInfo = getSpotifyCurrentPlayingSong();
-        // Debug logging (remove)
-        Serial.print("Song: ");
-        Serial.println(trackInfo.songName);
-        Serial.print("Artist: ");
-        Serial.println(trackInfo.artist);
-        // Debug logging (remove)
-    });
+                     // TODO remove get song from web server setup, move to main loop
+                     auto trackInfo = getSpotifyCurrentPlayingSong();
+                     // Debug logging (remove)
+                     Serial.print("Song: ");
+                     Serial.println(trackInfo.songName);
+                     Serial.print("Artist: ");
+                     Serial.println(trackInfo.artist);
+                     // Debug logging (remove)
+                 });
 
     // Start server
     webServer.begin();

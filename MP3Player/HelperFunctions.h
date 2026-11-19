@@ -35,19 +35,32 @@ public:
   const int SCREEN_SDA_PIN = 23;
   const int SCREEN_SCK_PIN = 22;
 
+  // Network credentials
   const char *ssid = "";     // your network SSID (name of wifi network)
   const char *password = ""; // your network password
   const char *client_id = "";
+
+  // Spotify auth info
   const char *spotify_redirect_uri = "http://127.0.0.1:8080";
   String authorizationCode = "";
   String accessToken = "";
   String codeChallenge = "";
   String codeVerifier = "";
+
+  // Playback state
   bool isPlaying = false;
+
+  // UI state
+  unsigned long lastScrollTimeUIText = 0;
+  unsigned long scrollFinishTimeUIText = 0;
+  int screenWidth = 128;
+  int scrollIndexUIX = screenWidth;
+  bool finishedScroll = false;
 
   HijelHID_BLEKeyboard keyboard; // Bluetooth keyboard
   WiFiClientSecure client;       // Wifi client
   WebServer webServer;           // Create web server
+  SSD1306Wire display;           // UI object
 
   HelperFunctions();
 
@@ -63,6 +76,10 @@ public:
   void handleRoot();
   void generateCodeChallenge();
   void playSpotify();
+
+  // UI functions
+  void initializeDisplay();
+  void drawTextWithScroll(String &text, int yPos, unsigned long &currentTime);
 
   // General helper functions
   void setupWifi();
