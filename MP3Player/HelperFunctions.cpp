@@ -192,7 +192,11 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
 
     // reading response json section
     auto doc = parseResponseJson(response);
-    accessToken = getSingleJsonItem<String>(doc, "access_token");
+    if (checkSingleJsonItemExists(doc, "access_token")) {
+        accessToken = getSingleJsonItem<String>(doc, "access_token");
+    } else {
+        Serial.println("Token exchange failed");
+    }
     // Debug logging (remove)
     Serial.println("FINAL ACCESS TOKEN: ");
     Serial.println(accessToken);
@@ -202,6 +206,10 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
 
 TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
 {
+    if (accessToken.isEmpty()) // TODO check this at start of all requests
+    {
+        return {"", ""}; // Access token not set yet
+    }
     String response = spotifyRequest("api.spotify.com",
                                      "GET",
                                      "/v1/me/player/currently-playing");
@@ -212,7 +220,7 @@ TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
     // Debug logging (remove)
 
     auto doc = parseResponseJson(response);
-    if (checkSingleJsonItemExists(doc, "is_playing"))
+    if (response.indexOf("204 No Content") == -1)
     {
         // Parse json section
         isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
@@ -354,7 +362,7 @@ void HelperFunctions::setupWebServer()
                  { handleRoot(); });
     webServer.on("/auth-code", HTTP_GET, [&]()
                  {
-                    if (accessToken == "")
+                    if (accessToken.isEmpty())
                     { // Should only run on the first time
                         authorizationCode = webServer.arg("code");   // Get auth code pasted by user (after successful login)
                         int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
