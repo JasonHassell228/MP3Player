@@ -182,57 +182,46 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
                                      body,
                                      "application/x-www-form-urlencoded");
 
-    // Debug logging (remove)
-    Serial.println("Auth POST body: ");
-    Serial.println(body);
-    Serial.print("finished printing body: ");
-    Serial.println("Auth exchange response: ");
-    Serial.println(response);
-    // Debug logging (remove)
-
     // reading response json section
     auto doc = parseResponseJson(response);
-    if (checkSingleJsonItemExists(doc, "access_token")) {
+    if (checkSingleJsonItemExists(doc, "access_token"))
+    {
         accessToken = getSingleJsonItem<String>(doc, "access_token");
-    } else {
+    }
+    else
+    {
         Serial.println("Token exchange failed");
     }
-    // Debug logging (remove)
-    Serial.println("FINAL ACCESS TOKEN: ");
-    Serial.println(accessToken);
-    // Debug logging (remove)
     // reading response json section
 }
 
-TrackInfo HelperFunctions::getSpotifyCurrentPlayingSong()
+void HelperFunctions::getSpotifyCurrentPlayingSong()
 {
     if (accessToken.isEmpty()) // TODO check this at start of all requests
     {
-        return {"", ""}; // Access token not set yet
+        return; // Access token not set yet
     }
     String response = spotifyRequest("api.spotify.com",
                                      "GET",
                                      "/v1/me/player/currently-playing");
-
-    // Debug logging (remove)
-    Serial.println("GET current playing response: ");
-    Serial.println(response);
-    // Debug logging (remove)
 
     auto doc = parseResponseJson(response);
     if (response.indexOf("204 No Content") == -1)
     {
         // Parse json section
         isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
-        return {
+        currentlyPlaying = {
             doc["item"]["name"].as<String>(),
             doc["item"]["artists"][0]["name"].as<String>()};
+        // TODO instead of raw update currentPlaying, should have a func that updates & redraws
         // Parse json section
     }
     else
     {
         isPlaying = false; // Empty return means playback stopped
-        return {"", ""};
+        currentlyPlaying = {
+            "Nothing playing rn :/",
+            "Yep nothing here bud"};
     }
 }
 
@@ -241,11 +230,6 @@ void HelperFunctions::playSpotify()
     String response = spotifyRequest("api.spotify.com",
                                      "PUT",
                                      "/v1/me/player/play");
-
-    // Debug logging (remove)
-    Serial.println("PUT resume play response: ");
-    Serial.println(response);
-    // Debug logging (remove)
 }
 
 String HelperFunctions::spotifyRequest(String host,
@@ -283,6 +267,28 @@ String HelperFunctions::spotifyRequest(String host,
     return response;
 }
 
+void HelperFunctions::spotifyLoop(unsigned long &currentTime)
+{
+    Serial.print("spotify loop: ");
+    Serial.println(currentTime);
+    if ((currentTime - lastApiCallTime) >= 1000)
+    {
+        Serial.print("resetting display loop: ");
+        Serial.println(lastApiCallTime);
+        getSpotifyCurrentPlayingSong();
+
+        lastApiCallTime = currentTime; // Reset loop timer
+        // Draw song & artist name UI
+        // TODO Func for spotify UI?
+        display.clear(); // TODO clear with black rectangle to save energy & preserve header?
+        display.setFont(Monospaced_plain_9);
+        drawTextWithScroll(currentlyPlaying.songName, 10, currentTime);
+        display.setFont(Monospaced_plain_8);
+        drawTextWithScroll(currentlyPlaying.artist, 25, currentTime);
+        display.display();
+    }
+}
+
 // ----- UI HELPER FUNCTIONS -----
 void HelperFunctions::initializeDisplay()
 {
@@ -294,8 +300,7 @@ void HelperFunctions::initializeDisplay()
     display.setTextAlignment(TEXT_ALIGN_LEFT);
 
     // Draw welcome text
-    display.drawString(0, 10, "No song? No song? No song?");
-    display.drawString(0, 20, ":(");
+    display.drawString(0, 10, "Connecting to Wifi...");
     // write the buffer to the display
     display.display();
 }

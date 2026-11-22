@@ -23,25 +23,18 @@ void setup() {
 
 void loop() {
     auto currentTime = millis();
-    String testText = "test text testy testy test text TEST TEST TESTY TESTY TEST TESTYYYYYYYYYYYYYYYYY";
-    // TODO handle all UI display in separate helper func
-    // ----- wip ui testing -----
-    hf.display.clear(); // TODO clear with black rectangle to save energy & preserve header?
-    hf.drawTextWithScroll(testText, 10, currentTime);
-    hf.display.display();
-    // ----- wip ui testing -----
 
     hf.checkBtnPresses(); // TODO: Run volume, play/pause etc on btn presses
     hf.webServer.handleClient();
-
+    hf.spotifyLoop(currentTime);
     // TODO test code remove
-    auto currentlyPlaying = hf.getSpotifyCurrentPlayingSong();
-    Serial.println("GET SONG TEST: ");
-    Serial.print("Song: ");
-    Serial.println(currentlyPlaying.songName);
-    Serial.print("Artist: ");
-    Serial.println(currentlyPlaying.artist);
-    delay(500);
+    // auto currentlyPlaying = hf.getSpotifyCurrentPlayingSong();
+    // Serial.println("GET SONG TEST: ");
+    // Serial.print("Song: ");
+    // Serial.println(currentlyPlaying.songName);
+    // Serial.print("Artist: ");
+    // Serial.println(currentlyPlaying.artist);
+    // delay(500); // TODO put in proper loop function and fix delay with millis
     // TODO test code remove
     
     // TODO: Use millis technique above to run getSpotifyCurrentPlayingSong every second or so
