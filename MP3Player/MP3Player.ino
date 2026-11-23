@@ -23,13 +23,14 @@ void setup() {
 
 void loop() {
     auto currentTime = millis();
-
     hf.checkBtnPresses(); // TODO: Run volume, play/pause etc on btn presses
     hf.webServer.handleClient();
     hf.spotifyLoop(currentTime);
 
     // TODO: UI to display:
-    // [ ] Current playing song, & artist (smaller, below song) 
+    // [x] Current playing song, & artist (smaller, below song) 
+    // [ ] Use freeRTOS tasks & mutexs to run http/display loop tasks independently
+    // [ ] strip out all link stuff so you can copy paste whole thing
     // [x] ^^ millis technique to display scrolling text for song name
     // [ ] ^^ millis technique to show little gif/animation when song is playing
     // [ ] ^^ millis technique to show current track progress bar

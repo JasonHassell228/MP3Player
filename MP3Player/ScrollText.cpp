@@ -8,7 +8,7 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
     {
         if (finishedScroll)
         {
-            if (currentTime > scrollFinishTimeUIText)
+            if (currentTime >= scrollFinishTimeUIText)
             {
                 scrollIndexUIX = screenWidth; // Reset scroll
                 finishedScroll = false;

@@ -269,7 +269,7 @@ String HelperFunctions::spotifyRequest(String host,
 
 void HelperFunctions::spotifyLoop(unsigned long &currentTime)
 {
-    if ((currentTime - lastApiCallTime) >= 1000)
+    if ((currentTime - lastApiCallTime) >= 5000) // TODO 5s is temporary, use freeRTOS tasks to run http calls async
     {
         getSpotifyCurrentPlayingSong();
         lastApiCallTime = currentTime; // Reset loop timer
