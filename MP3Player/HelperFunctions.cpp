@@ -1,7 +1,7 @@
 #include "HelperFunctions.h"
 
-HelperFunctions::HelperFunctions() : webServer(80),                                                 // Initialise web server to port 80
-                                     display(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN, GEOMETRY_128_32) // Init UI object
+HelperFunctions::HelperFunctions() : webServer(80),                           // Initialise web server to port 80
+                                     ui(0x3c, SCREEN_SDA_PIN, SCREEN_SCK_PIN) // Init UI object
 {
 }
 
@@ -269,70 +269,12 @@ String HelperFunctions::spotifyRequest(String host,
 
 void HelperFunctions::spotifyLoop(unsigned long &currentTime)
 {
-    Serial.print("spotify loop: ");
-    Serial.println(currentTime);
     if ((currentTime - lastApiCallTime) >= 1000)
     {
-        Serial.print("resetting display loop: ");
-        Serial.println(lastApiCallTime);
         getSpotifyCurrentPlayingSong();
 
         lastApiCallTime = currentTime; // Reset loop timer
-        // Draw song & artist name UI
-        // TODO Func for spotify UI?
-        display.clear(); // TODO clear with black rectangle to save energy & preserve header?
-        display.setFont(Monospaced_plain_9);
-        drawTextWithScroll(currentlyPlaying.songName, 10, currentTime);
-        display.setFont(Monospaced_plain_8);
-        drawTextWithScroll(currentlyPlaying.artist, 25, currentTime);
-        display.display();
-    }
-}
-
-// ----- UI HELPER FUNCTIONS -----
-void HelperFunctions::initializeDisplay()
-{
-    // Setup
-    display.init();
-    display.flipScreenVertically();
-    display.setFont(Monospaced_plain_8);
-    display.clear();
-    display.setTextAlignment(TEXT_ALIGN_LEFT);
-
-    // Draw welcome text
-    display.drawString(0, 10, "Connecting to Wifi...");
-    // write the buffer to the display
-    display.display();
-}
-
-// Draw text with scrolling functionality (MUST HANDLE CLEAR & DISPLAY OUTSIDE THIS FUNC)
-void HelperFunctions::drawTextWithScroll(String &text, int yPos, unsigned long &currentTime)
-{
-    auto totalWidth = display.getStringWidth(text);
-    if (totalWidth > screenWidth)
-    {
-        if (finishedScroll)
-        {
-            if (currentTime > scrollFinishTimeUIText)
-            {
-                scrollIndexUIX = screenWidth; // Reset scroll
-                finishedScroll = false;
-            }
-        }
-        else
-        {
-            if ((currentTime - lastScrollTimeUIText) >= 30)
-            {
-                lastScrollTimeUIText = currentTime;
-                display.drawString(scrollIndexUIX, yPos, text);
-                scrollIndexUIX--;
-                if (scrollIndexUIX < (-totalWidth + screenWidth - 10))
-                {
-                    scrollFinishTimeUIText = currentTime + 3000; // 3s delay after scroll finish
-                    finishedScroll = true;
-                }
-            }
-        }
+        ui.drawNowPlaying(currentlyPlaying, currentTime);
     }
 }
 
@@ -381,4 +323,9 @@ void HelperFunctions::setupWebServer()
     // Start server
     webServer.begin();
     Serial.println("Web server started");
+}
+
+void HelperFunctions::initializeDisplay()
+{
+    ui.initializeDisplay();
 }
