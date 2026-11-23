@@ -27,16 +27,7 @@ void loop() {
     hf.checkBtnPresses(); // TODO: Run volume, play/pause etc on btn presses
     hf.webServer.handleClient();
     hf.spotifyLoop(currentTime);
-    // TODO test code remove
-    // auto currentlyPlaying = hf.getSpotifyCurrentPlayingSong();
-    // Serial.println("GET SONG TEST: ");
-    // Serial.print("Song: ");
-    // Serial.println(currentlyPlaying.songName);
-    // Serial.print("Artist: ");
-    // Serial.println(currentlyPlaying.artist);
-    // delay(500); // TODO put in proper loop function and fix delay with millis
-    // TODO test code remove
-    
+
     // TODO: UI to display:
     // [ ] Current playing song, & artist (smaller, below song) 
     // [x] ^^ millis technique to display scrolling text for song name

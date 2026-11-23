@@ -27,6 +27,10 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
                 }
             }
         }
+        display.drawString(scrollIndexUIX, yPos, text);
     }
-    display.drawString(scrollIndexUIX, yPos, text);
+    else
+    {
+        display.drawString(0, yPos, text);
+    }
 }

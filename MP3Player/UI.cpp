@@ -21,14 +21,10 @@ void UI::initializeDisplay()
 void UI::drawNowPlaying(TrackInfo currentlyPlaying, unsigned long &currentTime)
 {
     // Draw song & artist name UI
-    Serial.print("screen should be: ");
-    Serial.print(currentlyPlaying.songName);
-    Serial.print(", ");
-    Serial.println(currentlyPlaying.artist);
     display.clear(); // TODO clear with black rectangle to save energy & preserve header?
-    display.setFont(Monospaced_plain_9);
-    songName.drawTextWithScroll(currentlyPlaying.songName, 10, currentTime, display);
+    display.setFont(Monospaced_plain_10);
+    songName.drawTextWithScroll(currentlyPlaying.songName, 12, currentTime, display);
     display.setFont(Monospaced_plain_8);
-    artist.drawTextWithScroll(currentlyPlaying.artist, 25, currentTime, display);
+    artist.drawTextWithScroll(currentlyPlaying.artist, 22, currentTime, display);
     display.display();
 }
