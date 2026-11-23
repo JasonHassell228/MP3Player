@@ -272,10 +272,9 @@ void HelperFunctions::spotifyLoop(unsigned long &currentTime)
     if ((currentTime - lastApiCallTime) >= 1000)
     {
         getSpotifyCurrentPlayingSong();
-
         lastApiCallTime = currentTime; // Reset loop timer
-        ui.drawNowPlaying(currentlyPlaying, currentTime);
     }
+    ui.drawNowPlaying(currentlyPlaying, currentTime);
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----

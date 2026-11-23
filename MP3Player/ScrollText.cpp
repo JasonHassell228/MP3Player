@@ -19,7 +19,6 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
             if ((currentTime - lastScrollTimeUIText) >= 30)
             {
                 lastScrollTimeUIText = currentTime;
-                display.drawString(scrollIndexUIX, yPos, text); // TODO NEED TO DRAW EVERY LOOP NOT ONLY ON LOOP RESET
                 scrollIndexUIX--;
                 if (scrollIndexUIX < (-totalWidth + screenWidth - 10))
                 {
@@ -29,4 +28,5 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
             }
         }
     }
+    display.drawString(scrollIndexUIX, yPos, text);
 }

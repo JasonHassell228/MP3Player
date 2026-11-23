@@ -14,9 +14,6 @@ struct TrackInfo
 class UI
 {
 public:
-	// UI state
-	int screenWidth = 128;
-
 	SSD1306Wire display; // UI object
 
 	ScrollText songName;

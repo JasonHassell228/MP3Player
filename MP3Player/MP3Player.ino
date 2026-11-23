@@ -37,7 +37,6 @@ void loop() {
     // delay(500); // TODO put in proper loop function and fix delay with millis
     // TODO test code remove
     
-    // TODO: Use millis technique above to run getSpotifyCurrentPlayingSong every second or so
     // TODO: UI to display:
     // [ ] Current playing song, & artist (smaller, below song) 
     // [x] ^^ millis technique to display scrolling text for song name
