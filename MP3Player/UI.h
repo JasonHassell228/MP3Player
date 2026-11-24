@@ -9,6 +9,7 @@ struct TrackInfo
 {
 	String songName;
 	String artist;
+	String trackId;
 };
 
 class UI

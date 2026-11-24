@@ -209,8 +209,18 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
     {
         // Parse json section
         isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
-        setCurrentlyPlaying({doc["item"]["name"].as<String>(),
-                             doc["item"]["artists"][0]["name"].as<String>()});
+        auto newTrackId = doc["item"]["id"].as<String>();
+        if (newTrackId != getCurrentlyPlaying().trackId)
+        { // Skip building artists string if track hasn't changed
+            String artists;
+            for (JsonObject artist : doc["item"]["artists"].as<JsonArray>())
+            {
+                if (!artists.isEmpty())
+                    artists += ", ";
+                artists += artist["name"].as<const char *>();
+            }
+            setCurrentlyPlaying({doc["item"]["name"].as<String>(), artists, newTrackId});
+        }
         // Parse json section
     }
     else

@@ -32,10 +32,15 @@ void loop() {
     // [x] Use freeRTOS tasks & mutexs to run http/display loop tasks independently
     // [x] strip out all link stuff so you can copy paste whole thing
     // [x] ^^ millis technique to display scrolling text for song name
+    // [ ] pause text scroll at start as well as end, and show start of name rather than start scroll off-screen
     // [ ] ^^ millis technique to show little gif/animation when song is playing
     // [ ] ^^ millis technique to show current track progress bar
     // [ ] Wifi enabled/disabled symbol in header
     // [ ] Display local web server IP at startup on screen instead of serial print
+    // QOL TODO:
+    // [ ] Store wifi deets in persistent storage between power cycles (dont need to enter again)
+    // [ ] Connect to wifi step in local web page rather than hardcoded
+    // [ ] Playlist viewing, selecting, add/remove menus (long-term, will take a bit)
 
     delay(50);
 }
