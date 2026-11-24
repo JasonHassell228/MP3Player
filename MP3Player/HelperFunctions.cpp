@@ -303,6 +303,24 @@ void HelperFunctions::setCurrentlyPlaying(const TrackInfo &track)
     xSemaphoreGive(currentlyPlayingMutex);
 }
 
+// ----- UI HELPER FUNCTIONS -----
+void HelperFunctions::uiTask(void *parameter)
+{
+    HelperFunctions *hf = static_cast<HelperFunctions *>(parameter);
+
+    while (true)
+    {
+        unsigned long currentTime = millis();
+        hf->uiLoop(currentTime);
+        vTaskDelay(pdMS_TO_TICKS(20));
+    }
+}
+
+void HelperFunctions::startUiTask()
+{
+    xTaskCreate(uiTask, "uiTask", 4096, this, 1, nullptr);
+}
+
 // ----- GENERAL HELPER FUNCTIONS -----
 void HelperFunctions::uiLoop(unsigned long &currentTime)
 {

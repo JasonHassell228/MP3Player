@@ -20,13 +20,12 @@ void setup() {
     hf.generateCodeChallenge(); // Generate and set verifier & challenge
     hf.setupWebServer();
     hf.startSpotifyTask(); // Start Spotify RTOS task for async web requests
+    hf.startUiTask(); // Start UI RTOS task for text scrolling & display
 }
 
 void loop() {
-    auto currentTime = millis();
     hf.checkBtnPresses(); // TODO: Run volume, play/pause etc on btn presses
     hf.webServer.handleClient();
-    hf.uiLoop(currentTime);
 
     // TODO: UI to display:
     // [x] Current playing song, & artist (smaller, below song) 

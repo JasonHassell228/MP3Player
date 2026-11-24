@@ -70,6 +70,7 @@ public:
 	void playSpotify();
 	// RTOS tasks stuffs
 	void startSpotifyTask(); // Start Spotify RTOS task
+	void startUiTask(); // Start UI RTOS task
 	TrackInfo getCurrentlyPlaying(); // Currently playing thread-safe access stuff
 	void setCurrentlyPlaying(const TrackInfo &trackInfo); // Currently playing thread-safe access stuff
 
@@ -95,7 +96,9 @@ private:
 						  String contentType = "application/json");
 	// RTOS tasks stuffs
 	static void spotifyTask(void *parameter); // Spotify RTOS task
+	static void uiTask(void *parameter); // UI loop RTOS task
 	SemaphoreHandle_t currentlyPlayingMutex = nullptr; // Currently playing thread-safe access stuff
+
 };
 
 #endif
