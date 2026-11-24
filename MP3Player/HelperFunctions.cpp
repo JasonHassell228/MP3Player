@@ -153,9 +153,8 @@ void HelperFunctions::handleRoot()
                   authLink + R"rawliteral(" target="_blank">Auth link</a>
       </p>
       <p>Here's the authorisation link. It will open a login page for Spotify in a new tab.</p>
-      <p>Once you login, just copy the code parameter from the URL. It should look something like this:</p>
+      <p>Once you login, you will be redirected - just copy the full URL into the box below! It should look something like this:</p>
       <p>http://127.0.0.1:8080/?code=AQCYMmZY1PagU3rt4ji_9h8yGREfBHOZEpqEH1W204caWfeyLA70...</p>
-      <p>You want the part after 'code='!</p>
       <form action="/auth-code" method="GET">
         <input name="code" placeholder="Paste Spotify auth code">
         <button type="submit">Submit</button>
@@ -361,13 +360,22 @@ void HelperFunctions::setupWebServer()
                     if (accessToken.isEmpty())
                     { // Should only run on the first time
                         authorizationCode = webServer.arg("code");   // Get auth code pasted by user (after successful login)
-                        int pos = authorizationCode.indexOf("&ubi"); // Strip out other arg to get auth code
+                        int pos = authorizationCode.indexOf("code=");
                         if (pos != -1)
                         {
-                            authorizationCode.remove(pos);
+                            authorizationCode.remove(0, pos + 5);
+                            // Remove everything after the authorisation code
+                            int endPos = authorizationCode.indexOf("&");
+                            if (endPos != -1)
+                            {
+                                authorizationCode.remove(endPos);
+                            }
+                            exchangeSpotifyAuthForAccess(); // Use auth code to get access code
                         }
-
-                        exchangeSpotifyAuthForAccess(); // Use auth code to get access code
+                    }
+                    else
+                    {
+                        Serial.println("Could not find code parameter during spotify auth!");
                     } });
     // Start server
     webServer.begin();
