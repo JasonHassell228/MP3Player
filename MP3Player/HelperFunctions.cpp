@@ -210,18 +210,15 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
     {
         // Parse json section
         isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
-        currentlyPlaying = {
-            doc["item"]["name"].as<String>(),
-            doc["item"]["artists"][0]["name"].as<String>()};
-        // TODO instead of raw update currentPlaying, should have a func that updates & redraws
+        setCurrentlyPlaying({doc["item"]["name"].as<String>(),
+                             doc["item"]["artists"][0]["name"].as<String>()});
         // Parse json section
     }
     else
     {
         isPlaying = false; // Empty return means playback stopped
-        currentlyPlaying = {
-            "Nothing playing rn :/",
-            "Yep nothing here bud"};
+        setCurrentlyPlaying({"Nothing playing rn :/",
+                             "Yep nothing here bud"});
     }
 }
 
@@ -257,7 +254,7 @@ String HelperFunctions::spotifyRequest(String host,
     // Read & return response
     String response = "";
     while (client.connected() || client.available())
-    { // TODO is this blocking main loop?
+    {
         if (client.available())
         {
             response += client.readString();
@@ -267,17 +264,52 @@ String HelperFunctions::spotifyRequest(String host,
     return response;
 }
 
-void HelperFunctions::spotifyLoop(unsigned long &currentTime)
+void HelperFunctions::startSpotifyTask()
 {
-    if ((currentTime - lastApiCallTime) >= 5000) // TODO 5s is temporary, use freeRTOS tasks to run http calls async
+    currentlyPlayingMutex = xSemaphoreCreateMutex();
+    xTaskCreate(spotifyTask,
+                "SpotifyTask",
+                8192,
+                this, // Pass instance of this class to use inside task
+                1,
+                nullptr);
+}
+
+void HelperFunctions::spotifyTask(void *parameter)
+{
+    HelperFunctions *hf = static_cast<HelperFunctions *>(parameter);
+    while (true)
     {
-        getSpotifyCurrentPlayingSong();
-        lastApiCallTime = currentTime; // Reset loop timer
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            hf->getSpotifyCurrentPlayingSong();
+            vTaskDelay(pdMS_TO_TICKS(1000)); // Delay spotify request task for 1s before next call
+        }
     }
-    ui.drawNowPlaying(currentlyPlaying, currentTime);
+}
+
+TrackInfo HelperFunctions::getCurrentlyPlaying()
+{
+    xSemaphoreTake(currentlyPlayingMutex, portMAX_DELAY);
+    TrackInfo copy = currentlyPlaying;
+    xSemaphoreGive(trackMutex);
+    return copy;
+}
+
+void HelperFunctions::setCurrentlyPlaying(const TrackInfo &track)
+{
+    xSemaphoreTake(currentlyPlayingMutex, portMAX_DELAY);
+    currentlyPlaying = track;
+    xSemaphoreGive(currentlyPlayingMutex);
 }
 
 // ----- GENERAL HELPER FUNCTIONS -----
+void HelperFunctions::uiLoop(unsigned long &currentTime)
+{
+    TrackInfo track = getCurrentlyPlaying();
+    ui.drawNowPlaying(track, currentTime);
+}
+
 void HelperFunctions::setupWifi()
 {
     WiFi.begin(ssid, password);

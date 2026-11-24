@@ -2,6 +2,9 @@
 #define HelperFunctions_h
 
 #include <ArduinoJson.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/semphr.h>
 #include <HijelHID_BLEKeyboard.h>
 #include <mbedtls/base64.h> // Base64 encoding and decoding
 #include <mbedtls/md.h>		// SHA-256 / message digest
@@ -48,10 +51,6 @@ public:
 		"Fresh loop"
 	};
 
-	// Track loop timings
-	// Spotify
-	unsigned long lastApiCallTime = 0;
-
 	HijelHID_BLEKeyboard keyboard; // Bluetooth keyboard
 	WiFiClientSecure client;	   // Wifi client
 	WebServer webServer;		   // Create web server
@@ -69,9 +68,13 @@ public:
 	void handleRoot();
 	void generateCodeChallenge();
 	void playSpotify();
-	void spotifyLoop(unsigned long &currentTime);
+	// RTOS tasks stuffs
+	void startSpotifyTask(); // Start Spotify RTOS task
+	TrackInfo getCurrentlyPlaying(); // Currently playing thread-safe access stuff
+	void setCurrentlyPlaying(const TrackInfo &trackInfo); // Currently playing thread-safe access stuff
 
 	// General helper functions
+	void uiLoop(unsigned long &currentTime);
 	void setupWifi();
 	void setupWebServer();
 	void initializeDisplay();
@@ -90,6 +93,9 @@ private:
 						  String endpoint,
 						  String body = "",
 						  String contentType = "application/json");
+	// RTOS tasks stuffs
+	void spotifyTask(void *parameter); // Spotify RTOS task
+	SemaphoreHandle_t currentlyPlayingMutex = nullptr; // Currently playing thread-safe access stuff
 };
 
 #endif
