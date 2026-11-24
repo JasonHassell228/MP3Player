@@ -8,11 +8,11 @@ class ScrollText
 public:
 	// UI text state
 	int screenWidth = 128;
-	int scrollIndexUIX = screenWidth;
+	int scrollIndex = 0;
 	// Track loop timings
 	bool finishedScroll = false;
-	unsigned long lastScrollTimeUIText = 0;
-	unsigned long scrollFinishTimeUIText = 0;
+	unsigned long lastScrollTime = 0;
+	unsigned long scrollDelayTime = 0;
 
 	// UI functions
 	void drawTextWithScroll(String &text, int yPos, unsigned long &currentTime, SSD1306Wire &display);

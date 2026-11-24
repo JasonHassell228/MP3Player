@@ -6,28 +6,33 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
     auto totalWidth = display.getStringWidth(text);
     if (totalWidth > screenWidth)
     {
+        if (scrollIndex == 0)
+        { // Delay start of scroll so user has time to read
+
+        }
+
         if (finishedScroll)
         {
-            if (currentTime >= scrollFinishTimeUIText)
+            if (currentTime >= scrollDelayTime)
             {
-                scrollIndexUIX = screenWidth; // Reset scroll
+                scrollIndex = screenWidth; // Reset scroll
                 finishedScroll = false;
             }
         }
         else
         {
-            if ((currentTime - lastScrollTimeUIText) >= 30)
+            if ((currentTime - lastScrollTime) >= 30)
             {
-                lastScrollTimeUIText = currentTime;
-                scrollIndexUIX--;
-                if (scrollIndexUIX < (-totalWidth + screenWidth - 10))
+                lastScrollTime = currentTime;
+                scrollIndex--;
+                if (scrollIndex < (-totalWidth + screenWidth - 10))
                 {
-                    scrollFinishTimeUIText = currentTime + 3000; // 3s delay after scroll finish
+                    scrollDelayTime = currentTime + 3000; // 3s delay after scroll finish
                     finishedScroll = true;
                 }
             }
         }
-        display.drawString(scrollIndexUIX, yPos, text);
+        display.drawString(scrollIndex, yPos, text);
     }
     else
     {
