@@ -220,6 +220,7 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
                 artists += artist["name"].as<const char *>();
             }
             setCurrentlyPlaying({doc["item"]["name"].as<String>(), artists, newTrackId});
+            ui.resetNowPlayingScroll();
         }
         // Parse json section
     }

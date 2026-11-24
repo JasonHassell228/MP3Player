@@ -28,3 +28,9 @@ void UI::drawNowPlaying(TrackInfo currentlyPlaying, unsigned long &currentTime)
     artist.drawTextWithScroll(currentlyPlaying.artist, 22, currentTime, display);
     display.display();
 }
+
+void UI::resetNowPlayingScroll()
+{
+    songName.reset();
+    artist.reset();
+}

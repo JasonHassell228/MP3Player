@@ -6,17 +6,22 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
     auto totalWidth = display.getStringWidth(text);
     if (totalWidth > screenWidth)
     {
-        if (scrollIndex == 0)
+        if (newScroll)
         { // Delay start of scroll so user has time to read
-
+            scrollDelayTime = currentTime;
+            newScroll = false;
+            scrollPaused = true;
         }
-
-        if (finishedScroll)
+        else if (scrollPaused)
         {
-            if (currentTime >= scrollDelayTime)
-            {
-                scrollIndex = screenWidth; // Reset scroll
-                finishedScroll = false;
+            if (currentTime - scrollDelayTime >= 3000)
+            { // 3s delay for scroll pause
+                if (checkScrollFinished(totalWidth))
+                {
+                    scrollIndex = 0; // Reset scroll
+                    newScroll = true;
+                }
+                scrollPaused = false;
             }
         }
         else
@@ -25,10 +30,10 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
             {
                 lastScrollTime = currentTime;
                 scrollIndex--;
-                if (scrollIndex < (-totalWidth + screenWidth - 10))
+                if (checkScrollFinished(totalWidth))
                 {
-                    scrollDelayTime = currentTime + 3000; // 3s delay after scroll finish
-                    finishedScroll = true;
+                    scrollDelayTime = currentTime;
+                    scrollPaused = true;
                 }
             }
         }
@@ -38,4 +43,19 @@ void ScrollText::drawTextWithScroll(String &text, int yPos, unsigned long &curre
     {
         display.drawString(0, yPos, text);
     }
+}
+
+bool ScrollText::checkScrollFinished(int totalWidth)
+{
+    return scrollIndex < (-totalWidth + screenWidth - 10);
+}
+
+// Reset scroll (called on song change)
+void ScrollText::reset()
+{
+    scrollIndex = 0;
+    newScroll = true;
+    scrollPaused = false;
+    scrollDelayTime = 0;
+    lastScrollTime = 0;
 }

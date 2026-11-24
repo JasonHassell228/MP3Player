@@ -25,6 +25,7 @@ public:
 	// UI functions
 	void initializeDisplay();
 	void drawNowPlaying(TrackInfo currentlyPlaying, unsigned long &currentTime);
+	void resetNowPlayingScroll();
 };
 
 #endif
