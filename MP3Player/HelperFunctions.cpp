@@ -292,7 +292,7 @@ TrackInfo HelperFunctions::getCurrentlyPlaying()
 {
     xSemaphoreTake(currentlyPlayingMutex, portMAX_DELAY);
     TrackInfo copy = currentlyPlaying;
-    xSemaphoreGive(trackMutex);
+    xSemaphoreGive(currentlyPlayingMutex);
     return copy;
 }
 

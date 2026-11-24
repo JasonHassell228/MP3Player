@@ -94,7 +94,7 @@ private:
 						  String body = "",
 						  String contentType = "application/json");
 	// RTOS tasks stuffs
-	void spotifyTask(void *parameter); // Spotify RTOS task
+	static void spotifyTask(void *parameter); // Spotify RTOS task
 	SemaphoreHandle_t currentlyPlayingMutex = nullptr; // Currently playing thread-safe access stuff
 };
 
