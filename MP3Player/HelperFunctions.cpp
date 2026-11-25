@@ -196,7 +196,7 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
 
 void HelperFunctions::getSpotifyCurrentPlayingSong()
 {
-    if (accessToken.isEmpty()) // TODO check this at start of all requests
+    if (accessToken.isEmpty())
     {
         return; // Access token not set yet
     }
@@ -234,6 +234,10 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
 
 void HelperFunctions::playSpotify()
 {
+    if (accessToken.isEmpty())
+    {
+        return; // Access token not set yet
+    }
     String response = spotifyRequest("api.spotify.com",
                                      "PUT",
                                      "/v1/me/player/play");
