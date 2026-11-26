@@ -41,8 +41,10 @@ public:
 	const char *spotify_redirect_uri = "http://127.0.0.1:8080";
 	String authorizationCode = "";
 	String accessToken = "";
+	String refreshToken = "";
 	String codeChallenge = "";
 	String codeVerifier = "";
+	unsigned long accessTokenRefreshTime = 0;
 
 	// Playback state
 	bool isPlaying = false;
@@ -73,6 +75,7 @@ public:
 	void startUiTask(); // Start UI RTOS task
 	TrackInfo getCurrentlyPlaying(); // Currently playing thread-safe access stuff
 	void setCurrentlyPlaying(const TrackInfo &trackInfo); // Currently playing thread-safe access stuff
+	void refreshAccessToken();
 
 	// General helper functions
 	void uiLoop(unsigned long &currentTime);
@@ -94,6 +97,7 @@ private:
 						  String endpoint,
 						  String body = "",
 						  String contentType = "application/json");
+	void setAccessTokenExpireTime(JsonDocument &doc);
 	// RTOS tasks stuffs
 	static void spotifyTask(void *parameter); // Spotify RTOS task
 	static void uiTask(void *parameter); // UI loop RTOS task

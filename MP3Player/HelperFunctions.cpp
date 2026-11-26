@@ -166,6 +166,12 @@ void HelperFunctions::handleRoot()
     webServer.send(200, "text/html", html);
 }
 
+void HelperFunctions::setAccessTokenExpireTime(JsonDocument &doc)
+{
+    int expiresIn = getSingleJsonItem<int>(doc, "expires_in");
+    accessTokenRefreshTime = millis() + (expiresIn - 300) * 1000UL;
+}
+
 void HelperFunctions::exchangeSpotifyAuthForAccess()
 {
     String body =
@@ -183,13 +189,40 @@ void HelperFunctions::exchangeSpotifyAuthForAccess()
 
     // reading response json section
     auto doc = parseResponseJson(response);
-    if (checkSingleJsonItemExists(doc, "access_token"))
+    if (checkSingleJsonItemExists(doc, "access_token") && checkSingleJsonItemExists(doc, "expires_in"))
     {
         accessToken = getSingleJsonItem<String>(doc, "access_token");
+        setAccessTokenExpireTime(doc);
     }
     else
     {
         Serial.println("Token exchange failed");
+    }
+    // Optional get refresh token if included
+    if (checkSingleJsonItemExists(doc, "refresh_token"))
+    {
+        refreshToken = getSingleJsonItem<String>(doc, "refresh_token");
+    }
+    // reading response json section
+}
+
+void HelperFunctions::refreshAccessToken()
+{
+    String body =
+        "grant_type=refresh_token"
+        "&refresh_token=" +
+        refreshToken + "&client_id=" + client_id;
+    String response = spotifyRequest("accounts.spotify.com",
+                                     "POST",
+                                     "/api/token",
+                                     body,
+                                     "application/x-www-form-urlencoded");
+    // reading response json section
+    auto doc = parseResponseJson(response);
+    if (checkSingleJsonItemExists(doc, "access_token") && checkSingleJsonItemExists(doc, "expires_in"))
+    {
+        accessToken = getSingleJsonItem<String>(doc, "access_token");
+        setAccessTokenExpireTime(doc);
     }
     // reading response json section
 }
@@ -296,9 +329,15 @@ void HelperFunctions::spotifyTask(void *parameter)
     {
         if (WiFi.status() == WL_CONNECTED)
         {
-            hf->getSpotifyCurrentPlayingSong();
-            vTaskDelay(pdMS_TO_TICKS(1000)); // Delay spotify request task for 1s before next call
+            if ((long)(millis() - hf->accessTokenRefreshTime) >= 0 && hf->refreshToken != "")
+            { // Refresh access token after it expires with refresh token
+                // Access token valid: 1hr
+                // Refresh token valid: 6 months
+                hf->refreshAccessToken();
+            }
+            hf->getSpotifyCurrentPlayingSong(); // Refresh current song & artist
         }
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay spotify request task for 1s before next call
     }
 }
 
