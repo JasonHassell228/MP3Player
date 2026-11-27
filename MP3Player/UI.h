@@ -33,6 +33,7 @@ public:
 	void initializeDisplay();
 	void drawNowPlaying(TrackInfo currentlyPlaying, unsigned long &currentTime);
 	void resetNowPlayingScroll();
+	void drawProgressBar();
 };
 
 #endif
