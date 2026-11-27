@@ -31,9 +31,9 @@ public:
 
 	// UI functions
 	void initializeDisplay();
-	void drawNowPlaying(TrackInfo currentlyPlaying, unsigned long &currentTime);
+	void drawNowPlaying(TrackInfo currentlyPlaying, TrackProgressInfo progress, unsigned long &currentTime);
 	void resetNowPlayingScroll();
-	void drawProgressBar();
+	void drawProgressBar(TrackProgressInfo progress);
 };
 
 #endif

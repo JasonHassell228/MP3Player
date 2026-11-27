@@ -243,9 +243,9 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
         // Parse json section
         // TODO get progressMS & durationMs
         setProgress({
-            0,                                         // progress
-            0,                                         // duration
-            getSingleJsonItem<bool>(doc, "is_playing") // isPlaying, set for future use
+            getSingleJsonItem<int>(doc, "progress_ms"), // progress
+            doc["item"]["duration_ms"].as<int>(), // duration
+            getSingleJsonItem<bool>(doc, "is_playing")  // isPlaying, set for future use
         });
         auto newTrackId = doc["item"]["id"].as<String>();
         if (newTrackId != getCurrentlyPlaying().trackId)
@@ -324,6 +324,7 @@ String HelperFunctions::spotifyRequest(String host,
 void HelperFunctions::startSpotifyTask()
 {
     currentlyPlayingMutex = xSemaphoreCreateMutex();
+    progressMutex = xSemaphoreCreateMutex();
     xTaskCreate(spotifyTask,
                 "SpotifyTask",
                 8192,
@@ -403,7 +404,8 @@ void HelperFunctions::startUiTask()
 void HelperFunctions::uiLoop(unsigned long &currentTime)
 {
     TrackInfo track = getCurrentlyPlaying();
-    ui.drawNowPlaying(track, currentTime);
+    TrackProgressInfo progress = getProgress();
+    ui.drawNowPlaying(track, progress, currentTime);
 }
 
 void HelperFunctions::setupWifi()

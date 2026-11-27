@@ -18,24 +18,33 @@ void UI::initializeDisplay()
     display.display();
 }
 
-void UI::drawProgressBar()
-{ // TODO take in vars to draw in real time
-    display.drawLine(0, 31, 127, 31);
+void UI::drawProgressBar(TrackProgressInfo progress)
+{
+    if (progress.isPlaying)
+    {
+        auto progressComplete = (float)progress.progressMs / progress.durationMs;
+        int start = 3;
+        int end = 124;
+        int current = start + (end - start) * progressComplete;
+        display.drawLine(start, 30, current, 30);
+    }
 }
 
-void UI::drawNowPlaying(TrackInfo currentlyPlaying, unsigned long &currentTime)
+void UI::drawNowPlaying(TrackInfo currentlyPlaying,
+                        TrackProgressInfo progress,
+                        unsigned long &currentTime)
 {
     // Draw song & artist name UI
     display.clear(); // TODO clear with black rectangle to save energy & preserve header?
 
     // Display song name & artist
     display.setFont(Monospaced_plain_10);
-    songName.drawTextWithScroll(currentlyPlaying.songName, 12, currentTime, display);
+    songName.drawTextWithScroll(currentlyPlaying.songName, 10, currentTime, display);
     display.setFont(Monospaced_plain_8);
-    artist.drawTextWithScroll(currentlyPlaying.artist, 22, currentTime, display);
+    artist.drawTextWithScroll(currentlyPlaying.artist, 20, currentTime, display);
 
     // Display track progress bar
-    drawProgressBar();
+    drawProgressBar(progress);
 
     display.display();
 }

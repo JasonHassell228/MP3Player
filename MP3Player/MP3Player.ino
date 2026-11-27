@@ -35,7 +35,8 @@ void loop() {
     // [x] pause text scroll at start as well as end, and show start of name rather than start scroll off-screen
     // [ ] ^^ millis technique to show little gif/animation when song is playing
     // [ ] ^^ millis technique to show current song play/paused symbol
-    // [ ] ^^ millis technique to show current track progress bar
+    // [x] ^^ millis technique to show current track progress bar
+    // [ ] update progress locally, then api call syncs, otherwise it jumps and looks bad
     // [ ] Wifi enabled/disabled symbol in header
     // [ ] Display local web server IP at startup on screen instead of serial print
     // QOL TODO:
