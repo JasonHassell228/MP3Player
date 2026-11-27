@@ -241,7 +241,12 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
     if (response.indexOf("204 No Content") == -1)
     {
         // Parse json section
-        isPlaying = getSingleJsonItem<bool>(doc, "is_playing"); // Set isPlaying for future use
+        // TODO get progressMS & durationMs
+        setProgress({
+            0,                                         // progress
+            0,                                         // duration
+            getSingleJsonItem<bool>(doc, "is_playing") // isPlaying, set for future use
+        });
         auto newTrackId = doc["item"]["id"].as<String>();
         if (newTrackId != getCurrentlyPlaying().trackId)
         { // Skip building artists string if track hasn't changed
@@ -259,7 +264,12 @@ void HelperFunctions::getSpotifyCurrentPlayingSong()
     }
     else
     {
-        isPlaying = false; // Empty return means playback stopped
+        // TODO get progressMS & durationMs
+        setProgress({
+            0,     // progress
+            0,     // duration
+            false, // isPlaying, empty return means playback stopped
+        });
         setCurrentlyPlaying({"Nothing playing rn :/",
                              "Yep nothing here bud"});
     }
@@ -354,6 +364,21 @@ void HelperFunctions::setCurrentlyPlaying(const TrackInfo &track)
     xSemaphoreTake(currentlyPlayingMutex, portMAX_DELAY);
     currentlyPlaying = track;
     xSemaphoreGive(currentlyPlayingMutex);
+}
+
+TrackProgressInfo HelperFunctions::getProgress()
+{
+    xSemaphoreTake(progressMutex, portMAX_DELAY);
+    TrackProgressInfo copy = trackProgress;
+    xSemaphoreGive(progressMutex);
+    return copy;
+}
+
+void HelperFunctions::setProgress(const TrackProgressInfo &progress)
+{
+    xSemaphoreTake(progressMutex, portMAX_DELAY);
+    trackProgress = progress;
+    xSemaphoreGive(progressMutex);
 }
 
 // ----- UI HELPER FUNCTIONS -----

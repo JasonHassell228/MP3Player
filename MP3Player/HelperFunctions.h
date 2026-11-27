@@ -47,11 +47,10 @@ public:
 	unsigned long accessTokenRefreshTime = 0;
 
 	// Playback state
-	bool isPlaying = false;
+	TrackProgressInfo trackProgress = {0, 0, false};
 	TrackInfo currentlyPlaying = {
 		"Just inited",
-		"Fresh loop"
-	};
+		"Fresh loop"};
 
 	HijelHID_BLEKeyboard keyboard; // Bluetooth keyboard
 	WiFiClientSecure client;	   // Wifi client
@@ -71,11 +70,13 @@ public:
 	void generateCodeChallenge();
 	void playSpotify();
 	// RTOS tasks stuffs
-	void startSpotifyTask(); // Start Spotify RTOS task
-	void startUiTask(); // Start UI RTOS task
-	TrackInfo getCurrentlyPlaying(); // Currently playing thread-safe access stuff
+	void startSpotifyTask();							  // Start Spotify RTOS task
+	void startUiTask();									  // Start UI RTOS task
+	TrackInfo getCurrentlyPlaying();					  // Currently playing thread-safe access stuff
 	void setCurrentlyPlaying(const TrackInfo &trackInfo); // Currently playing thread-safe access stuff
 	void refreshAccessToken();
+	TrackProgressInfo getProgress();
+	void setProgress(const TrackProgressInfo &progress);
 
 	// General helper functions
 	void uiLoop(unsigned long &currentTime);
@@ -99,10 +100,10 @@ private:
 						  String contentType = "application/json");
 	void setAccessTokenExpireTime(JsonDocument &doc);
 	// RTOS tasks stuffs
-	static void spotifyTask(void *parameter); // Spotify RTOS task
-	static void uiTask(void *parameter); // UI loop RTOS task
+	static void spotifyTask(void *parameter);		   // Spotify RTOS task
+	static void uiTask(void *parameter);			   // UI loop RTOS task
 	SemaphoreHandle_t currentlyPlayingMutex = nullptr; // Currently playing thread-safe access stuff
-
+	SemaphoreHandle_t progressMutex = nullptr;
 };
 
 #endif

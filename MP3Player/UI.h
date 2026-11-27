@@ -12,6 +12,13 @@ struct TrackInfo
 	String trackId;
 };
 
+struct TrackProgressInfo
+{
+	int progressMs;
+	int durationMs;
+	bool isPlaying;
+};
+
 class UI
 {
 public:
